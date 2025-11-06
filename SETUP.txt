@@ -1,0 +1,103 @@
+CLOUDFLARE WORKER SETUP (One-Time Setup)
+==========================================
+
+Since you're on Termux, we'll deploy the worker using GitHub Actions instead!
+
+STEP 1: Create Cloudflare Account
+----------------------------------
+1. Go to https://dash.cloudflare.com/sign-up
+2. Sign up for free account
+3. Verify email
+
+
+STEP 2: Get Cloudflare API Token
+---------------------------------
+1. Go to https://dash.cloudflare.com/profile/api-tokens
+2. Click "Create Token"
+3. Use template "Edit Cloudflare Workers"
+4. Click "Continue to summary"
+5. Click "Create Token"
+6. COPY THE TOKEN (you'll need it next)
+
+
+STEP 3: Create GitHub Personal Access Token
+--------------------------------------------
+1. Go to https://github.com/settings/tokens/new
+2. Name: "APK Builder Worker"
+3. Expiration: No expiration (or 1 year)
+4. Scopes needed:
+   - ✓ public_repo
+5. Click "Generate token"
+6. COPY THE TOKEN
+
+
+STEP 4: Add Secrets to GitHub Repository
+-----------------------------------------
+1. Go to https://github.com/alltechdev/apk/settings/secrets/actions
+2. Click "New repository secret"
+3. Add these two secrets:
+
+   Secret 1:
+   Name: CLOUDFLARE_API_TOKEN
+   Value: (paste Cloudflare token from Step 2)
+
+   Secret 2:
+   Name: GH_PAT
+   Value: (paste GitHub token from Step 3)
+
+
+STEP 5: Deploy Worker via GitHub Actions
+-----------------------------------------
+Run this command:
+
+gh workflow run deploy-worker.yml
+
+OR manually:
+1. Go to https://github.com/alltechdev/apk/actions/workflows/deploy-worker.yml
+2. Click "Run workflow"
+3. Click green "Run workflow" button
+4. Wait ~1 minute for deployment
+
+
+STEP 6: Get Worker URL
+-----------------------
+After deployment completes:
+1. Check the workflow output
+2. Worker URL will be: https://apk-builder-worker.alltechdev.workers.dev
+3. Test it: curl https://apk-builder-worker.alltechdev.workers.dev
+
+
+STEP 7: Update Frontend
+------------------------
+Run these commands:
+
+cd /data/data/com.termux/files/home/appbuilder/apk-backend/apk
+
+# Edit docs/app.js line 8
+sed -i "s|const WORKER_URL = null;|const WORKER_URL = 'https://apk-builder-worker.alltechdev.workers.dev';|" docs/app.js
+
+# Commit and push
+git add docs/app.js
+git commit -m "Enable Cloudflare Worker endpoint"
+git push
+
+
+DONE! 🎉
+--------
+Users can now build APKs without any authentication!
+
+Visit: https://alltechdev.github.io/apk/
+
+
+TROUBLESHOOTING
+---------------
+If worker doesn't deploy:
+- Check GitHub Actions logs
+- Verify CLOUDFLARE_API_TOKEN is correct
+- Verify GH_PAT has public_repo scope
+- Make sure worker/wrangler.toml has correct name
+
+If frontend shows error:
+- Check worker URL is correct in docs/app.js
+- Test worker URL directly: curl <worker-url>
+- Check browser console for errors
