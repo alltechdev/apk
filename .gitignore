@@ -17,7 +17,6 @@ build/
 *.aab
 *.keystore
 local.properties
-AndroidRestrictedWebView/
 
 # Logs
 logs/

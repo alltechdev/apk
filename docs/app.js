@@ -3,6 +3,35 @@ const GITHUB_OWNER = 'alltechdev';
 const GITHUB_REPO = 'apk';
 const GITHUB_API = 'https://api.github.com';
 
+// GitHub OAuth App - Users need to authenticate to create issues
+// This enables a fully serverless architecture
+const CLIENT_ID = 'Ov23liLn4gZ6mNuEYPON'; // Public OAuth App ID
+
+// Check authentication on page load
+let githubToken = localStorage.getItem('github_token');
+
+// Handle OAuth callback
+if (window.location.search.includes('code=')) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+
+    // Show loading
+    Swal.fire({
+        icon: 'info',
+        title: 'Completing login...',
+        text: 'Please wait while we authenticate you with GitHub.',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+
+    // Exchange code for token using GitHub's device flow
+    // Since we can't have a backend, we'll use a public CORS proxy temporarily
+    // Or better: Just have users create a personal access token
+    window.history.replaceState({}, document.title, window.location.pathname);
+}
+
 // Utility functions
 function showErrorModal(text) {
     Swal.fire({
@@ -21,6 +50,131 @@ function extractDomain(url) {
 
 function generateBuildId() {
     return 'build-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+}
+
+// Check if user is authenticated
+function isAuthenticated() {
+    return !!githubToken;
+}
+
+// Prompt for GitHub token
+async function promptForToken() {
+    const { value: token } = await Swal.fire({
+        title: 'GitHub Authentication Required',
+        html: `
+            <p>To build APKs, you need to authenticate with GitHub.</p>
+            <p class="mt-3"><strong>Option 1: Create a Personal Access Token</strong></p>
+            <ol class="text-start">
+                <li>Go to <a href="https://github.com/settings/tokens/new?scopes=public_repo&description=APK%20Builder" target="_blank">GitHub Token Settings</a></li>
+                <li>Click "Generate token" (only needs <code>public_repo</code> scope)</li>
+                <li>Copy the token and paste it below</li>
+            </ol>
+            <p class="text-muted small mt-3">Your token is stored locally and never sent to any server except GitHub.</p>
+        `,
+        input: 'password',
+        inputLabel: 'GitHub Personal Access Token',
+        inputPlaceholder: 'ghp_xxxxxxxxxxxx',
+        showCancelButton: true,
+        confirmButtonText: 'Save Token',
+        inputValidator: (value) => {
+            if (!value) {
+                return 'Please enter a token';
+            }
+            if (!value.startsWith('ghp_') && !value.startsWith('github_pat_')) {
+                return 'Invalid token format';
+            }
+        }
+    });
+
+    if (token) {
+        // Verify token works
+        try {
+            const response = await fetch(`${GITHUB_API}/user`, {
+                headers: {
+                    'Authorization': `token ${token}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Invalid token');
+            }
+
+            const user = await response.json();
+
+            // Save token
+            localStorage.setItem('github_token', token);
+            githubToken = token;
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Authenticated!',
+                text: `Welcome, ${user.login}! You can now build APKs.`,
+                timer: 2000,
+                showConfirmButton: false
+            });
+
+            return true;
+        } catch (error) {
+            showErrorModal('Invalid token. Please try again.');
+            return false;
+        }
+    }
+
+    return false;
+}
+
+// Logout function
+function logout() {
+    localStorage.removeItem('github_token');
+    githubToken = null;
+    Swal.fire({
+        icon: 'info',
+        title: 'Logged Out',
+        text: 'You have been logged out.',
+        timer: 2000,
+        showConfirmButton: false
+    }).then(() => {
+        location.reload();
+    });
+}
+
+// Show auth status
+async function updateAuthStatus() {
+    const authStatus = document.getElementById('authStatus');
+    if (!authStatus) return;
+
+    if (isAuthenticated()) {
+        try {
+            const response = await fetch(`${GITHUB_API}/user`, {
+                headers: {
+                    'Authorization': `token ${githubToken}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            });
+
+            if (response.ok) {
+                const user = await response.json();
+                authStatus.innerHTML = `
+                    <div class="text-success">
+                        <i class="fab fa-github"></i> Logged in as ${user.login}
+                        <button class="btn btn-sm btn-link" onclick="logout()">Logout</button>
+                    </div>
+                `;
+                return;
+            }
+        } catch (error) {
+            // Token invalid, remove it
+            localStorage.removeItem('github_token');
+            githubToken = null;
+        }
+    }
+
+    authStatus.innerHTML = `
+        <div class="text-muted">
+            <i class="fas fa-sign-in-alt"></i> Not authenticated
+        </div>
+    `;
 }
 
 // Form handling
@@ -67,7 +221,6 @@ $('#icon').on('change', async function (e) {
 
         if (isConfirmed) {
             const data = $('#crop-select').CropSelectJs('getImageSrc');
-            // Store base64 image for later use
             window.croppedIcon = data;
         } else {
             this.value = '';
@@ -79,6 +232,14 @@ $('#icon').on('change', async function (e) {
 // Main form submission
 $('#apkForm').on('submit', async (e) => {
     e.preventDefault();
+
+    // Check authentication
+    if (!isAuthenticated()) {
+        const authenticated = await promptForToken();
+        if (!authenticated) {
+            return;
+        }
+    }
 
     const form = e.target;
     const url = form.url.value;
@@ -117,7 +278,7 @@ $('#apkForm').on('submit', async (e) => {
     const sanitizedAppName = appName || domain.replace(/[^a-zA-Z0-9]/g, '');
     const buildId = generateBuildId();
 
-    // Create build request as GitHub Issue
+    // Create build request
     await createBuildRequest({
         buildId,
         domain,
@@ -135,7 +296,6 @@ $('#apkForm').on('submit', async (e) => {
 
 async function createBuildRequest(config) {
     try {
-        // Show loading
         Swal.fire({
             icon: 'info',
             title: 'Creating build request...',
@@ -147,9 +307,7 @@ async function createBuildRequest(config) {
             allowOutsideClick: false,
         });
 
-        // Create issue body with configuration
-        const issueBody = `
-## APK Build Request
+        const issueBody = `## APK Build Request
 
 **Build ID:** \`${config.buildId}\`
 **Domain:** ${config.domain}
@@ -171,15 +329,15 @@ ${JSON.stringify(config, null, 2)}
 \`\`\`
 
 ---
-*This issue was automatically created by the APK Builder. A GitHub Action will process this request and build your APK.*
+*This issue was automatically created by the APK Builder.*
 `;
 
-        // Create issue via GitHub API
         const response = await fetch(`${GITHUB_API}/repos/${GITHUB_OWNER}/${GITHUB_REPO}/issues`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/vnd.github.v3+json'
+                'Accept': 'application/vnd.github.v3+json',
+                'Authorization': `token ${githubToken}`
             },
             body: JSON.stringify({
                 title: `APK Build: ${config.appName} [${config.buildId}]`,
@@ -196,7 +354,6 @@ ${JSON.stringify(config, null, 2)}
         const issue = await response.json();
         console.log('Issue created:', issue);
 
-        // Start monitoring the issue for completion
         monitorBuildProgress(issue.number, config);
 
     } catch (error) {
@@ -212,7 +369,11 @@ async function monitorBuildProgress(issueNumber, config) {
         html: `
             <div>The build process takes about 2-3 minutes.</div>
             <div class="mt-3"><b>Do not close this page</b></div>
-            <div class="mt-2 text-muted small">Issue #${issueNumber}</div>
+            <div class="mt-2 text-muted small">
+                <a href="https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/issues/${issueNumber}" target="_blank">
+                    View Issue #${issueNumber}
+                </a>
+            </div>
         `,
         didOpen: () => {
             Swal.showLoading();
@@ -221,20 +382,19 @@ async function monitorBuildProgress(issueNumber, config) {
         allowOutsideClick: false,
     });
 
-    // Poll the issue for completion
-    const maxAttempts = 60; // 10 minutes
+    const maxAttempts = 60;
     let attempts = 0;
 
     const checkStatus = async () => {
         try {
             attempts++;
 
-            // Get issue comments
             const response = await fetch(
                 `${GITHUB_API}/repos/${GITHUB_OWNER}/${GITHUB_REPO}/issues/${issueNumber}/comments`,
                 {
                     headers: {
-                        'Accept': 'application/vnd.github.v3+json'
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Authorization': `token ${githubToken}`
                     }
                 }
             );
@@ -245,10 +405,9 @@ async function monitorBuildProgress(issueNumber, config) {
 
             const comments = await response.json();
 
-            // Look for completion comment from bot
             const completionComment = comments.find(c =>
                 c.body.includes('✅ APK Build Complete') ||
-                c.body.includes('Download your APK')
+                c.body.includes('Download APK')
             );
 
             const errorComment = comments.find(c =>
@@ -257,7 +416,6 @@ async function monitorBuildProgress(issueNumber, config) {
             );
 
             if (completionComment) {
-                // Extract download URL from comment
                 const urlMatch = completionComment.body.match(/https:\/\/github\.com\/[^\s)]+\.apk/);
                 const downloadUrl = urlMatch ? urlMatch[0] : null;
 
@@ -321,8 +479,7 @@ async function monitorBuildProgress(issueNumber, config) {
                 });
 
             } else {
-                // Continue polling
-                setTimeout(checkStatus, 10000); // Check every 10 seconds
+                setTimeout(checkStatus, 10000);
             }
 
         } catch (error) {
@@ -343,6 +500,13 @@ async function monitorBuildProgress(issueNumber, config) {
         }
     };
 
-    // Start checking after 5 seconds
     setTimeout(checkStatus, 5000);
 }
+
+// Initialize on page load
+$(document).ready(() => {
+    updateAuthStatus();
+});
+
+// Expose logout function globally
+window.logout = logout;
