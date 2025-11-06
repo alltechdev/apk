@@ -1,3 +1,79 @@
 .crop-selection .border {
     border-color: red !important;
 }
+
+/* Build History Section */
+#buildHistorySection {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    padding: 3rem 0;
+    border-radius: 10px;
+    margin-top: 2rem;
+}
+
+#buildHistorySection h3 {
+    color: #2c3e50;
+}
+
+#buildHistoryList .card {
+    border-radius: 12px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: none;
+}
+
+#buildHistoryList .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15) !important;
+}
+
+#buildHistoryList .card-body {
+    padding: 1.5rem;
+}
+
+#buildHistoryList .card-title {
+    color: #2c3e50;
+    font-size: 1.1rem;
+}
+
+#buildHistoryList .badge {
+    font-size: 0.75rem;
+    padding: 0.4em 0.8em;
+}
+
+#buildHistoryPagination {
+    margin-top: 2rem;
+}
+
+#buildHistoryPagination .btn {
+    border-radius: 20px;
+    padding: 0.5rem 1.5rem;
+    font-weight: 500;
+}
+
+#buildHistoryPagination .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+#pageInfo {
+    font-weight: 500;
+    color: #2c3e50;
+}
+
+#noBuildHistory {
+    padding: 3rem 0;
+}
+
+#noBuildHistory i {
+    color: #cbd5e0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    #buildHistorySection {
+        padding: 2rem 0;
+    }
+
+    #buildHistoryList .card {
+        margin-bottom: 1rem;
+    }
+}

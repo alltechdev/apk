@@ -389,3 +389,199 @@ async function monitorBuildProgress(issueNumber, config) {
 
     setTimeout(checkStatus, 5000);
 }
+
+// ============================================
+// APK Build History Management
+// ============================================
+
+let allReleases = [];
+let currentPage = 1;
+const ITEMS_PER_PAGE = 4;
+
+// Parse release body to extract configuration
+function parseReleaseConfig(body) {
+    const config = {
+        appName: '',
+        domain: '',
+        buildId: '',
+        blockMedia: false,
+        adBlocker: false,
+        viewMode: 'AUTO',
+        noSslMode: false,
+        additionalDomains: []
+    };
+
+    // Extract app name
+    const appNameMatch = body.match(/\*\*App Name:\*\*\s*(.+)/);
+    if (appNameMatch) config.appName = appNameMatch[1].trim();
+
+    // Extract domain
+    const domainMatch = body.match(/\*\*Domain:\*\*\s*(.+)/);
+    if (domainMatch) config.domain = domainMatch[1].trim();
+
+    // Extract build ID
+    const buildIdMatch = body.match(/\*\*Build ID:\*\*\s*(.+)/);
+    if (buildIdMatch) config.buildId = buildIdMatch[1].trim();
+
+    // Extract block media
+    if (body.includes('Block Media: true')) config.blockMedia = true;
+
+    // Extract ad blocker
+    if (body.includes('Ad Blocker: true')) config.adBlocker = true;
+
+    // Extract view mode
+    const viewModeMatch = body.match(/View Mode:\s*(\w+)/);
+    if (viewModeMatch) config.viewMode = viewModeMatch[1].trim();
+
+    // Extract SSL mode
+    if (body.includes('Ignore SSL: true')) config.noSslMode = true;
+
+    return config;
+}
+
+// Fetch all releases from GitHub
+async function fetchReleases() {
+    try {
+        const response = await fetch(
+            `${GITHUB_API}/repos/${GITHUB_OWNER}/${GITHUB_REPO}/releases?per_page=100`,
+            {
+                headers: {
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch releases');
+        }
+
+        const releases = await response.json();
+        return releases.filter(release =>
+            release.assets.length > 0 &&
+            release.assets[0].name.endsWith('.apk')
+        );
+    } catch (error) {
+        console.error('Error fetching releases:', error);
+        return [];
+    }
+}
+
+// Create a card for a single build
+function createBuildCard(release) {
+    const config = parseReleaseConfig(release.body);
+    const apkAsset = release.assets.find(asset => asset.name.endsWith('.apk'));
+    const downloadUrl = apkAsset ? apkAsset.browser_download_url : '#';
+    const createdDate = new Date(release.created_at).toLocaleDateString();
+
+    return `
+        <div class="col-md-6">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-mobile-alt text-primary me-2"></i>${config.appName}
+                        </h5>
+                        <span class="badge bg-success rounded-pill">APK</span>
+                    </div>
+
+                    <p class="card-text text-muted small mb-3">
+                        <i class="fas fa-globe me-1"></i>${config.domain}
+                    </p>
+
+                    <div class="mb-3">
+                        <h6 class="small fw-bold text-muted mb-2">Configuration:</h6>
+                        <div class="d-flex flex-wrap gap-1">
+                            ${config.blockMedia ? '<span class="badge bg-info">Block Media</span>' : ''}
+                            ${config.adBlocker ? '<span class="badge bg-info">Ad Blocker</span>' : ''}
+                            ${config.noSslMode ? '<span class="badge bg-warning text-dark">Ignore SSL</span>' : ''}
+                            <span class="badge bg-secondary">${config.viewMode}</span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">
+                            <i class="far fa-calendar me-1"></i>${createdDate}
+                        </small>
+                        <a href="${downloadUrl}" class="btn btn-sm btn-primary" download>
+                            <i class="fas fa-download me-1"></i>Download
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Render current page of builds
+function renderBuildHistory() {
+    const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIdx = startIdx + ITEMS_PER_PAGE;
+    const pageReleases = allReleases.slice(startIdx, endIdx);
+
+    const buildHistoryList = $('#buildHistoryList');
+    buildHistoryList.empty();
+
+    if (pageReleases.length === 0) {
+        $('#buildHistoryContent').hide();
+        $('#noBuildHistory').show();
+        return;
+    }
+
+    pageReleases.forEach(release => {
+        buildHistoryList.append(createBuildCard(release));
+    });
+
+    // Update pagination
+    const totalPages = Math.ceil(allReleases.length / ITEMS_PER_PAGE);
+    $('#pageInfo').text(`Page ${currentPage} of ${totalPages}`);
+    $('#prevPageBtn').prop('disabled', currentPage === 1);
+    $('#nextPageBtn').prop('disabled', currentPage >= totalPages);
+
+    $('#buildHistoryContent').show();
+    $('#noBuildHistory').hide();
+}
+
+// Load and display build history
+async function loadBuildHistory() {
+    $('#buildHistoryLoading').show();
+    $('#buildHistoryContent').hide();
+
+    allReleases = await fetchReleases();
+
+    $('#buildHistoryLoading').hide();
+
+    if (allReleases.length === 0) {
+        $('#noBuildHistory').show();
+    } else {
+        renderBuildHistory();
+    }
+}
+
+// Pagination handlers
+$('#prevPageBtn').on('click', function() {
+    if (currentPage > 1) {
+        currentPage--;
+        renderBuildHistory();
+        // Scroll to history section
+        $('html, body').animate({
+            scrollTop: $('#buildHistorySection').offset().top - 20
+        }, 500);
+    }
+});
+
+$('#nextPageBtn').on('click', function() {
+    const totalPages = Math.ceil(allReleases.length / ITEMS_PER_PAGE);
+    if (currentPage < totalPages) {
+        currentPage++;
+        renderBuildHistory();
+        // Scroll to history section
+        $('html, body').animate({
+            scrollTop: $('#buildHistorySection').offset().top - 20
+        }, 500);
+    }
+});
+
+// Load build history when page loads
+$(document).ready(function() {
+    loadBuildHistory();
+});

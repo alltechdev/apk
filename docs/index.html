@@ -143,6 +143,43 @@
                         </div>
                     </div>
                 </section>
+
+                <!-- APK Build History Section -->
+                <section class="text-center mt-5" id="buildHistorySection">
+                    <div class="row d-flex justify-content-center">
+                        <div class="col-lg-8">
+                            <h3 class="fw-bold mb-4">Built APKs</h3>
+
+                            <div id="buildHistoryLoading" class="mb-3">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="text-muted mt-2">Loading build history...</p>
+                            </div>
+
+                            <div id="buildHistoryContent" style="display: none;">
+                                <div id="buildHistoryList" class="row g-3 mb-4">
+                                    <!-- Build cards will be inserted here -->
+                                </div>
+
+                                <div id="buildHistoryPagination" class="d-flex justify-content-center align-items-center gap-2">
+                                    <button class="btn btn-outline-primary" id="prevPageBtn" disabled>
+                                        <i class="fas fa-chevron-left"></i> Previous
+                                    </button>
+                                    <span id="pageInfo" class="mx-3 text-muted"></span>
+                                    <button class="btn btn-outline-primary" id="nextPageBtn">
+                                        Next <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                </div>
+
+                                <div id="noBuildHistory" style="display: none;" class="text-muted">
+                                    <i class="fas fa-inbox fa-3x mb-3"></i>
+                                    <p>No APKs built yet. Create your first app above!</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
             </section>
         </div>
     </body>
