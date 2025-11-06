@@ -82,6 +82,20 @@ jobs:
         run: |
           PROJECT_DIR="build/${{ steps.parse.outputs.buildId }}/project"
 
+          # Generate unique package name from domain
+          DOMAIN="${{ steps.parse.outputs.domain }}"
+          PACKAGE_NAME=$(echo "com.${DOMAIN}" | sed 's/\./_/g; s/[^a-zA-Z0-9_.]//g; s/__*/_/g' | tr '[:upper:]' '[:lower:]')
+
+          echo "Generated package name: $PACKAGE_NAME"
+
+          # Update package name in build.gradle
+          sed -i "s|applicationId \".*\"|applicationId \"$PACKAGE_NAME\"|" \
+            $PROJECT_DIR/app/build.gradle
+
+          # Update package in AndroidManifest.xml
+          sed -i "s|package=\".*\"|package=\"$PACKAGE_NAME\"|" \
+            $PROJECT_DIR/app/src/main/AndroidManifest.xml
+
           # Update app name in strings.xml
           sed -i "s|<string name=\"app_name\">.*</string>|<string name=\"app_name\">${{ steps.parse.outputs.appName }}</string>|" \
             $PROJECT_DIR/app/src/main/res/values/strings.xml
@@ -144,6 +158,48 @@ jobs:
 
       - name: Grant execute permission for gradlew
         run: chmod +x build/${{ steps.parse.outputs.buildId }}/project/gradlew
+
+      - name: Setup APK Signing
+        env:
+          KEYSTORE_FILE: ${{ secrets.KEYSTORE_FILE }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          PROJECT_DIR="build/${{ steps.parse.outputs.buildId }}/project"
+
+          # Decode and save keystore
+          echo "$KEYSTORE_FILE" | base64 -d > $PROJECT_DIR/app/keystore.jks
+
+          # Create gradle.properties with signing config
+          cat > $PROJECT_DIR/gradle.properties << EOF
+          KEYSTORE_FILE=keystore.jks
+          KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD
+          KEY_ALIAS=$KEY_ALIAS
+          KEY_PASSWORD=$KEY_PASSWORD
+          EOF
+
+          # Update build.gradle to include signing config
+          cat >> $PROJECT_DIR/app/build.gradle << 'GRADLE'
+
+          android {
+              signingConfigs {
+                  release {
+                      storeFile file(project.property('KEYSTORE_FILE'))
+                      storePassword project.property('KEYSTORE_PASSWORD')
+                      keyAlias project.property('KEY_ALIAS')
+                      keyPassword project.property('KEY_PASSWORD')
+                  }
+              }
+              buildTypes {
+                  release {
+                      signingConfig signingConfigs.release
+                  }
+              }
+          }
+          GRADLE
+
+          echo "APK signing configured"
 
       - name: Build APK
         run: |
