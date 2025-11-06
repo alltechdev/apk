@@ -178,10 +178,8 @@ jobs:
           echo "$KEYSTORE_FILE" | base64 -d > $PROJECT_DIR/app/keystore.jks
 
           # Append signing config to gradle.properties (preserve existing properties)
-          cat >> $PROJECT_DIR/gradle.properties << 'EOF'
-
-KEYSTORE_FILE=keystore.jks
-EOF
+          echo "" >> $PROJECT_DIR/gradle.properties
+          echo "KEYSTORE_FILE=keystore.jks" >> $PROJECT_DIR/gradle.properties
           echo "KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD" >> $PROJECT_DIR/gradle.properties
           echo "KEY_ALIAS=$KEY_ALIAS" >> $PROJECT_DIR/gradle.properties
           echo "KEY_PASSWORD=$KEY_PASSWORD" >> $PROJECT_DIR/gradle.properties
