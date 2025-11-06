@@ -783,12 +783,12 @@ hr {
 
 @media (max-width: 768px) {
   .hero-section {
-    padding: var(--space-8) 0;
+    padding: var(--space-10) 0;
     min-height: auto;
   }
 
   .form-container {
-    padding: var(--space-6);
+    padding: var(--space-5);
     margin: var(--space-4);
     border-radius: var(--radius-xl);
   }
@@ -798,16 +798,16 @@ hr {
   }
 
   .form-title {
-    font-size: 2rem;
+    font-size: 1.75rem;
     margin-bottom: var(--space-3);
   }
 
   .form-subtitle {
-    font-size: 1rem;
+    font-size: 0.9375rem;
   }
 
   .form-outline {
-    margin-bottom: var(--space-5);
+    margin-bottom: var(--space-4);
   }
 
   .form-control,
@@ -815,11 +815,11 @@ hr {
   select.form-select {
     height: 56px;
     font-size: 16px; /* Prevents iOS zoom */
-    padding: 0 var(--space-5);
+    padding: 0 var(--space-4);
   }
 
   .form-check {
-    padding: var(--space-4);
+    padding: var(--space-3) var(--space-4) var(--space-3) var(--space-5);
     min-height: 48px;
   }
 
@@ -841,7 +841,7 @@ hr {
 
   .btn-link,
   .btn.btn-link {
-    padding: var(--space-4);
+    padding: var(--space-3);
   }
 
   #buildHistorySection {
