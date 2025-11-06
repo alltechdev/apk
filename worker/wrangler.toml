@@ -1,11 +1,8 @@
 name = "apk-builder-worker"
 main = "index.js"
 compatibility_date = "2024-01-01"
+account_id = "5351850092a8c8ed60b9c5b3889b42cd"
 
-# Environment variables (set via: wrangler secret put GITHUB_TOKEN)
-# GITHUB_TOKEN = "your_github_token_here"
-# GITHUB_OWNER = "alltechdev"
-# GITHUB_REPO = "apk"
-
-[env.production]
-vars = { GITHUB_OWNER = "alltechdev", GITHUB_REPO = "apk" }
+[vars]
+GITHUB_OWNER = "alltechdev"
+GITHUB_REPO = "apk"
