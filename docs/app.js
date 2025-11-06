@@ -91,7 +91,7 @@ $('#apkForm').on('submit', async (e) => {
         form.additionalDomain3.value
     ].filter(d => d.trim() !== '');
 
-    const blockMedia = form.forcePortrait.checked;
+    const blockMedia = form.blockMedia.checked;
     const appName = form.name.value;
     const viewMode = form.viewMode.value;
     const adsBlocker = form.adsBlocker.checked;

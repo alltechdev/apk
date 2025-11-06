@@ -122,18 +122,32 @@ jobs:
           # Create config.json directory if it doesn't exist
           mkdir -p $PROJECT_DIR/app/src/main/assets
 
+          # Build allowedDomains array
+          ADDITIONAL="${{ steps.parse.outputs.additionalDomains }}"
+          if [ -z "$ADDITIONAL" ]; then
+            ALLOWED_DOMAINS="[\"${{ steps.parse.outputs.domain }}\"]"
+          else
+            # Convert comma-separated to JSON array
+            ALLOWED_DOMAINS="[\"${{ steps.parse.outputs.domain }}\""
+            IFS=',' read -ra DOMAINS <<< "$ADDITIONAL"
+            for domain in "${DOMAINS[@]}"; do
+              ALLOWED_DOMAINS="$ALLOWED_DOMAINS, \"$domain\""
+            done
+            ALLOWED_DOMAINS="$ALLOWED_DOMAINS]"
+          fi
+
           # Create config.json
-          cat > $PROJECT_DIR/app/src/main/assets/config.json << 'EOF'
+          cat > $PROJECT_DIR/app/src/main/assets/config.json <<EOF
           {
             "domain": "${{ steps.parse.outputs.domain }}",
             "startUrl": "${{ steps.parse.outputs.startUpUrl }}",
-            "allowedDomains": ["${{ steps.parse.outputs.domain }}"$(echo ",${{ steps.parse.outputs.additionalDomains }}" | sed 's/,/", "/g' | sed 's/^, //' | sed 's/, $//' | sed 's/^//' | sed 's/$//')],
+            "allowedDomains": $ALLOWED_DOMAINS,
             "blockMedia": ${{ steps.parse.outputs.blockMedia }},
             "adBlocker": ${{ steps.parse.outputs.adsBlocker }},
             "ignoreSSLErrors": ${{ steps.parse.outputs.noSslMode }},
             "orientation": "${{ steps.parse.outputs.viewMode }}"
           }
-          EOF
+EOF
 
           echo "Configuration created:"
           cat $PROJECT_DIR/app/src/main/assets/config.json
