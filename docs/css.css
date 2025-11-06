@@ -820,12 +820,16 @@ hr {
   }
 
   .form-title {
-    font-size: 1.75rem;
+    font-size: 1.5rem;
     margin-bottom: var(--space-3);
   }
 
   .form-subtitle {
-    font-size: 0.9375rem;
+    font-size: 0.875rem;
+  }
+
+  .form-label {
+    font-size: 0.75rem;
   }
 
   .form-outline {
@@ -836,7 +840,7 @@ hr {
   .form-select,
   select.form-select {
     height: 56px;
-    font-size: 16px; /* Prevents iOS zoom */
+    font-size: 14px;
     padding: 0 var(--space-4);
   }
 
@@ -845,25 +849,37 @@ hr {
     min-height: 48px;
   }
 
+  .form-check-label {
+    font-size: 0.875rem;
+  }
+
+  .form-check-label .small,
+  .form-check-label .text-muted {
+    font-size: 0.8125rem;
+  }
+
   .form-check-input {
-    width: 24px;
-    height: 24px;
-    min-width: 24px;
+    width: 22px;
+    height: 22px;
+    min-width: 22px;
   }
 
   .btn-success,
   .btn-primary,
   .btn.btn-success {
     height: 56px;
+    font-size: 0.9375rem;
   }
 
   .btn-outline-primary {
     height: 52px;
+    font-size: 0.875rem;
   }
 
   .btn-link,
   .btn.btn-link {
     padding: var(--space-3);
+    font-size: 0.875rem;
   }
 
   #buildHistorySection {
@@ -871,7 +887,7 @@ hr {
   }
 
   #buildHistorySection h3 {
-    font-size: 1.75rem;
+    font-size: 1.5rem;
     margin-bottom: var(--space-6);
   }
 
@@ -880,11 +896,29 @@ hr {
   }
 
   #buildHistoryList .card-title {
-    font-size: 1rem;
+    font-size: 0.9375rem;
+  }
+
+  #buildHistoryList .card-text {
+    font-size: 0.875rem;
   }
 
   #buildHistoryList h6 {
     margin-bottom: var(--space-2);
+    font-size: 0.6875rem;
+  }
+
+  #buildHistoryList .badge {
+    font-size: 0.75rem;
+    padding: 0.4em 0.75em;
+  }
+
+  #buildHistoryList .btn-sm {
+    font-size: 0.875rem;
+  }
+
+  #pageInfo {
+    font-size: 0.875rem;
   }
 
   #buildHistoryList .d-flex.justify-content-between.align-items-center {
@@ -921,6 +955,14 @@ hr {
 
   .card-body {
     padding: var(--space-4);
+  }
+
+  hr + div {
+    font-size: 0.8125rem;
+  }
+
+  a {
+    font-size: 0.8125rem;
   }
 }
 
