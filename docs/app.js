@@ -3,36 +3,10 @@ const GITHUB_OWNER = 'alltechdev';
 const GITHUB_REPO = 'apk';
 const GITHUB_API = 'https://api.github.com';
 
-// GitHub OAuth App - Users need to authenticate to create issues
-// This enables a fully serverless architecture
-const CLIENT_ID = 'Ov23liLn4gZ6mNuEYPON'; // Public OAuth App ID
+// Cloudflare Worker endpoint (deploy worker first and update this URL)
+// For now, falls back to creating issues directly (requires user to be logged into GitHub)
+const WORKER_URL = null; // Set to your worker URL: 'https://apk-builder-worker.your-subdomain.workers.dev'
 
-// Check authentication on page load
-let githubToken = localStorage.getItem('github_token');
-
-// Handle OAuth callback
-if (window.location.search.includes('code=')) {
-    const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get('code');
-
-    // Show loading
-    Swal.fire({
-        icon: 'info',
-        title: 'Completing login...',
-        text: 'Please wait while we authenticate you with GitHub.',
-        allowOutsideClick: false,
-        didOpen: () => {
-            Swal.showLoading();
-        }
-    });
-
-    // Exchange code for token using GitHub's device flow
-    // Since we can't have a backend, we'll use a public CORS proxy temporarily
-    // Or better: Just have users create a personal access token
-    window.history.replaceState({}, document.title, window.location.pathname);
-}
-
-// Utility functions
 function showErrorModal(text) {
     Swal.fire({
         icon: 'error',
@@ -50,131 +24,6 @@ function extractDomain(url) {
 
 function generateBuildId() {
     return 'build-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
-}
-
-// Check if user is authenticated
-function isAuthenticated() {
-    return !!githubToken;
-}
-
-// Prompt for GitHub token
-async function promptForToken() {
-    const { value: token } = await Swal.fire({
-        title: 'GitHub Authentication Required',
-        html: `
-            <p>To build APKs, you need to authenticate with GitHub.</p>
-            <p class="mt-3"><strong>Option 1: Create a Personal Access Token</strong></p>
-            <ol class="text-start">
-                <li>Go to <a href="https://github.com/settings/tokens/new?scopes=public_repo&description=APK%20Builder" target="_blank">GitHub Token Settings</a></li>
-                <li>Click "Generate token" (only needs <code>public_repo</code> scope)</li>
-                <li>Copy the token and paste it below</li>
-            </ol>
-            <p class="text-muted small mt-3">Your token is stored locally and never sent to any server except GitHub.</p>
-        `,
-        input: 'password',
-        inputLabel: 'GitHub Personal Access Token',
-        inputPlaceholder: 'ghp_xxxxxxxxxxxx',
-        showCancelButton: true,
-        confirmButtonText: 'Save Token',
-        inputValidator: (value) => {
-            if (!value) {
-                return 'Please enter a token';
-            }
-            if (!value.startsWith('ghp_') && !value.startsWith('github_pat_')) {
-                return 'Invalid token format';
-            }
-        }
-    });
-
-    if (token) {
-        // Verify token works
-        try {
-            const response = await fetch(`${GITHUB_API}/user`, {
-                headers: {
-                    'Authorization': `token ${token}`,
-                    'Accept': 'application/vnd.github.v3+json'
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error('Invalid token');
-            }
-
-            const user = await response.json();
-
-            // Save token
-            localStorage.setItem('github_token', token);
-            githubToken = token;
-
-            Swal.fire({
-                icon: 'success',
-                title: 'Authenticated!',
-                text: `Welcome, ${user.login}! You can now build APKs.`,
-                timer: 2000,
-                showConfirmButton: false
-            });
-
-            return true;
-        } catch (error) {
-            showErrorModal('Invalid token. Please try again.');
-            return false;
-        }
-    }
-
-    return false;
-}
-
-// Logout function
-function logout() {
-    localStorage.removeItem('github_token');
-    githubToken = null;
-    Swal.fire({
-        icon: 'info',
-        title: 'Logged Out',
-        text: 'You have been logged out.',
-        timer: 2000,
-        showConfirmButton: false
-    }).then(() => {
-        location.reload();
-    });
-}
-
-// Show auth status
-async function updateAuthStatus() {
-    const authStatus = document.getElementById('authStatus');
-    if (!authStatus) return;
-
-    if (isAuthenticated()) {
-        try {
-            const response = await fetch(`${GITHUB_API}/user`, {
-                headers: {
-                    'Authorization': `token ${githubToken}`,
-                    'Accept': 'application/vnd.github.v3+json'
-                }
-            });
-
-            if (response.ok) {
-                const user = await response.json();
-                authStatus.innerHTML = `
-                    <div class="text-success">
-                        <i class="fab fa-github"></i> Logged in as ${user.login}
-                        <button class="btn btn-sm btn-link" onclick="logout()">Logout</button>
-                    </div>
-                `;
-                return;
-            }
-        } catch (error) {
-            // Token invalid, remove it
-            localStorage.removeItem('github_token');
-            githubToken = null;
-        }
-    }
-
-    authStatus.innerHTML = `
-        <div class="text-muted">
-            <i class="fas fa-sign-in-alt"></i> Not authenticated
-        </div>
-    `;
 }
 
 // Form handling
@@ -232,14 +81,6 @@ $('#icon').on('change', async function (e) {
 // Main form submission
 $('#apkForm').on('submit', async (e) => {
     e.preventDefault();
-
-    // Check authentication
-    if (!isAuthenticated()) {
-        const authenticated = await promptForToken();
-        if (!authenticated) {
-            return;
-        }
-    }
 
     const form = e.target;
     const url = form.url.value;
@@ -307,7 +148,31 @@ async function createBuildRequest(config) {
             allowOutsideClick: false,
         });
 
-        const issueBody = `## APK Build Request
+        let issueNumber, issueUrl;
+
+        if (WORKER_URL) {
+            // Use Cloudflare Worker (no authentication needed)
+            const response = await fetch(WORKER_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(config)
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to create build request');
+            }
+
+            const result = await response.json();
+            issueNumber = result.issueNumber;
+            issueUrl = result.issueUrl;
+
+        } else {
+            // Fallback: Create issue directly via GitHub API
+            // This requires the user to be logged into GitHub and have repo access
+            const issueBody = `## APK Build Request
 
 **Build ID:** \`${config.buildId}\`
 **Domain:** ${config.domain}
@@ -332,29 +197,53 @@ ${JSON.stringify(config, null, 2)}
 *This issue was automatically created by the APK Builder.*
 `;
 
-        const response = await fetch(`${GITHUB_API}/repos/${GITHUB_OWNER}/${GITHUB_REPO}/issues`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/vnd.github.v3+json',
-                'Authorization': `token ${githubToken}`
-            },
-            body: JSON.stringify({
-                title: `APK Build: ${config.appName} [${config.buildId}]`,
-                body: issueBody,
-                labels: ['apk-build', 'automated']
-            })
-        });
+            // Try creating without authentication (will show GitHub's login if needed)
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/issues/new`;
+            form.target = '_blank';
 
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.message || 'Failed to create build request');
+            const titleInput = document.createElement('input');
+            titleInput.type = 'hidden';
+            titleInput.name = 'title';
+            titleInput.value = `APK Build: ${config.appName} [${config.buildId}]`;
+            form.appendChild(titleInput);
+
+            const bodyInput = document.createElement('input');
+            bodyInput.type = 'hidden';
+            bodyInput.name = 'body';
+            bodyInput.value = issueBody;
+            form.appendChild(bodyInput);
+
+            const labelsInput = document.createElement('input');
+            labelsInput.type = 'hidden';
+            labelsInput.name = 'labels';
+            labelsInput.value = 'apk-build,automated';
+            form.appendChild(labelsInput);
+
+            document.body.appendChild(form);
+            form.submit();
+            document.body.removeChild(form);
+
+            Swal.fire({
+                icon: 'info',
+                title: 'Complete on GitHub',
+                html: `
+                    <div>A new tab has opened with a pre-filled issue.</div>
+                    <div class="mt-3"><b>Click "Submit new issue" on GitHub</b></div>
+                    <div class="mt-3 text-muted">The APK will be built automatically after you submit the issue.</div>
+                `,
+                showConfirmButton: true,
+                confirmButtonText: 'OK'
+            });
+
+            return;
         }
 
-        const issue = await response.json();
-        console.log('Issue created:', issue);
-
-        monitorBuildProgress(issue.number, config);
+        // Monitor build if we have issue number
+        if (issueNumber) {
+            monitorBuildProgress(issueNumber, config);
+        }
 
     } catch (error) {
         console.error('Build request error:', error);
@@ -393,8 +282,7 @@ async function monitorBuildProgress(issueNumber, config) {
                 `${GITHUB_API}/repos/${GITHUB_OWNER}/${GITHUB_REPO}/issues/${issueNumber}/comments`,
                 {
                     headers: {
-                        'Accept': 'application/vnd.github.v3+json',
-                        'Authorization': `token ${githubToken}`
+                        'Accept': 'application/vnd.github.v3+json'
                     }
                 }
             );
@@ -502,11 +390,3 @@ async function monitorBuildProgress(issueNumber, config) {
 
     setTimeout(checkStatus, 5000);
 }
-
-// Initialize on page load
-$(document).ready(() => {
-    updateAuthStatus();
-});
-
-// Expose logout function globally
-window.logout = logout;
