@@ -1,0 +1,283 @@
+name: Build APK from Issue
+
+on:
+  issues:
+    types: [opened, labeled]
+
+jobs:
+  build-apk:
+    if: contains(github.event.issue.labels.*.name, 'apk-build')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Parse issue data
+        id: parse
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issueBody = context.payload.issue.body;
+
+            // Extract JSON config from code block
+            const jsonMatch = issueBody.match(/```json\n([\s\S]*?)\n```/);
+            if (!jsonMatch) {
+              core.setFailed('Could not find configuration in issue');
+              return;
+            }
+
+            const config = JSON.parse(jsonMatch[1]);
+
+            // Set outputs
+            core.setOutput('buildId', config.buildId);
+            core.setOutput('domain', config.domain);
+            core.setOutput('url', config.url);
+            core.setOutput('appName', config.appName);
+            core.setOutput('blockMedia', config.blockMedia);
+            core.setOutput('viewMode', config.viewMode);
+            core.setOutput('startUpUrl', config.startUpUrl);
+            core.setOutput('adsBlocker', config.adsBlocker);
+            core.setOutput('noSslMode', config.noSslMode);
+            core.setOutput('additionalDomains', config.additionalDomains.join(','));
+            core.setOutput('hasIcon', config.icon ? 'true' : 'false');
+
+            // Store full config for later
+            const fs = require('fs');
+            fs.writeFileSync('build-config.json', JSON.stringify(config, null, 2));
+
+      - name: Comment on issue - Starting build
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '🔨 **Build Started**\n\nYour APK is being built. This will take approximately 2-3 minutes.\n\nBuild ID: `${{ steps.parse.outputs.buildId }}`'
+            })
+
+      - name: Clone Android template
+        run: |
+          git clone https://github.com/lo-mityaesh/AndroidRestrictedWebView.git
+
+      - name: Create build directory
+        run: |
+          mkdir -p build/${{ steps.parse.outputs.buildId }}
+          cp -r AndroidRestrictedWebView build/${{ steps.parse.outputs.buildId }}/project
+
+      - name: Update app configuration
+        run: |
+          PROJECT_DIR="build/${{ steps.parse.outputs.buildId }}/project"
+
+          # Update app name in strings.xml
+          sed -i "s|<string name=\"app_name\">.*</string>|<string name=\"app_name\">${{ steps.parse.outputs.appName }}</string>|" \
+            $PROJECT_DIR/app/src/main/res/values/strings.xml
+
+          # Create config.json directory if it doesn't exist
+          mkdir -p $PROJECT_DIR/app/src/main/assets
+
+          # Create config.json
+          cat > $PROJECT_DIR/app/src/main/assets/config.json << 'EOF'
+          {
+            "domain": "${{ steps.parse.outputs.domain }}",
+            "startUrl": "${{ steps.parse.outputs.startUpUrl }}",
+            "allowedDomains": ["${{ steps.parse.outputs.domain }}"$(echo ",${{ steps.parse.outputs.additionalDomains }}" | sed 's/,/", "/g' | sed 's/^, //' | sed 's/, $//' | sed 's/^//' | sed 's/$//')],
+            "blockMedia": ${{ steps.parse.outputs.blockMedia }},
+            "adBlocker": ${{ steps.parse.outputs.adsBlocker }},
+            "ignoreSSLErrors": ${{ steps.parse.outputs.noSslMode }},
+            "orientation": "${{ steps.parse.outputs.viewMode }}"
+          }
+          EOF
+
+          echo "Configuration created:"
+          cat $PROJECT_DIR/app/src/main/assets/config.json
+
+      - name: Process custom icon
+        if: steps.parse.outputs.hasIcon == 'true'
+        run: |
+          # Install ImageMagick for image processing
+          sudo apt-get update && sudo apt-get install -y imagemagick
+
+          # Extract base64 icon from config
+          node << 'SCRIPT'
+          const fs = require('fs');
+          const config = JSON.parse(fs.readFileSync('build-config.json'));
+          if (config.icon && config.icon.startsWith('data:image')) {
+            const base64Data = config.icon.replace(/^data:image\/\w+;base64,/, '');
+            const buffer = Buffer.from(base64Data, 'base64');
+            fs.writeFileSync('custom-icon.png', buffer);
+            console.log('Icon extracted successfully');
+          }
+          SCRIPT
+
+          # Create icons for different resolutions
+          PROJECT_DIR="build/${{ steps.parse.outputs.buildId }}/project"
+
+          if [ -f custom-icon.png ]; then
+            mkdir -p $PROJECT_DIR/app/src/main/res/mipmap-mdpi
+            mkdir -p $PROJECT_DIR/app/src/main/res/mipmap-hdpi
+            mkdir -p $PROJECT_DIR/app/src/main/res/mipmap-xhdpi
+            mkdir -p $PROJECT_DIR/app/src/main/res/mipmap-xxhdpi
+            mkdir -p $PROJECT_DIR/app/src/main/res/mipmap-xxxhdpi
+
+            convert custom-icon.png -resize 48x48 $PROJECT_DIR/app/src/main/res/mipmap-mdpi/ic_launcher.png
+            convert custom-icon.png -resize 72x72 $PROJECT_DIR/app/src/main/res/mipmap-hdpi/ic_launcher.png
+            convert custom-icon.png -resize 96x96 $PROJECT_DIR/app/src/main/res/mipmap-xhdpi/ic_launcher.png
+            convert custom-icon.png -resize 144x144 $PROJECT_DIR/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
+            convert custom-icon.png -resize 192x192 $PROJECT_DIR/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+
+            echo "Custom icons created"
+          fi
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x build/${{ steps.parse.outputs.buildId }}/project/gradlew
+
+      - name: Build APK
+        run: |
+          cd build/${{ steps.parse.outputs.buildId }}/project
+          ./gradlew assembleRelease --stacktrace --no-daemon
+
+      - name: Rename and prepare APK
+        run: |
+          PROJECT_DIR="build/${{ steps.parse.outputs.buildId }}/project"
+          APK_PATH="$PROJECT_DIR/app/build/outputs/apk/release/app-release.apk"
+          OUTPUT_NAME="${{ steps.parse.outputs.appName }}-${{ steps.parse.outputs.buildId }}.apk"
+
+          if [ -f "$APK_PATH" ]; then
+            cp "$APK_PATH" "$OUTPUT_NAME"
+            echo "APK built successfully: $OUTPUT_NAME"
+            ls -lh "$OUTPUT_NAME"
+            echo "APK_FILE=$OUTPUT_NAME" >> $GITHUB_ENV
+          else
+            echo "❌ APK not found at expected location"
+            exit 1
+          fi
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.parse.outputs.buildId }}
+          release_name: ${{ steps.parse.outputs.appName }} (${{ steps.parse.outputs.buildId }})
+          body: |
+            ## APK Build Complete
+
+            **App Name:** ${{ steps.parse.outputs.appName }}
+            **Domain:** ${{ steps.parse.outputs.domain }}
+            **Build ID:** ${{ steps.parse.outputs.buildId }}
+
+            ### Configuration
+            - Block Media: ${{ steps.parse.outputs.blockMedia }}
+            - Ad Blocker: ${{ steps.parse.outputs.adsBlocker }}
+            - View Mode: ${{ steps.parse.outputs.viewMode }}
+
+            ### Installation
+            1. Download the APK file below
+            2. Enable "Install from unknown sources" on your Android device
+            3. Install the APK
+
+            Built by [APK Builder](https://github.com/${{ github.repository }})
+          draft: false
+          prerelease: false
+
+      - name: Upload APK to Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ env.APK_FILE }}
+          asset_name: ${{ env.APK_FILE }}
+          asset_content_type: application/vnd.android.package-archive
+
+      - name: Comment on issue - Success
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const downloadUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/releases/download/${{ steps.parse.outputs.buildId }}/${{ env.APK_FILE }}`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## ✅ APK Build Complete!
+
+            Your Android app is ready to download!
+
+            ### Download
+            🔗 **[Download APK](${downloadUrl})**
+
+            ### App Details
+            - **Name:** ${{ steps.parse.outputs.appName }}
+            - **Domain:** ${{ steps.parse.outputs.domain }}
+            - **Build ID:** \`${{ steps.parse.outputs.buildId }}\`
+
+            ### Installation Instructions
+            1. Download the APK file using the link above
+            2. On your Android device, enable "Install from unknown sources"
+            3. Open the downloaded APK file to install
+
+            ### Technical Details
+            - Block Media: ${{ steps.parse.outputs.blockMedia }}
+            - Ad Blocker: ${{ steps.parse.outputs.adsBlocker }}
+            - View Mode: ${{ steps.parse.outputs.viewMode }}
+
+            ---
+            *Built in ${Math.round((Date.now() - new Date(context.payload.issue.created_at).getTime()) / 1000)} seconds*
+            `
+            });
+
+            // Close the issue
+            github.rest.issues.update({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'closed',
+              labels: ['apk-build', 'completed']
+            });
+
+      - name: Comment on issue - Failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## ❌ Build Failed
+
+            Unfortunately, the APK build encountered an error.
+
+            ### Troubleshooting
+            - Check the [workflow logs](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}) for details
+            - Verify your domain and configuration are correct
+            - Try again with different settings
+
+            ### Need Help?
+            Please provide the following information:
+            - Build ID: \`${{ steps.parse.outputs.buildId }}\`
+            - Workflow Run: https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}
+            `
+            });
+
+            github.rest.issues.addLabels({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ['build-failed']
+            });

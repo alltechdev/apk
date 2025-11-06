@@ -1,425 +1,264 @@
-# APK Builder - Website to Android App Converter
+# 🚀 APK Builder - Serverless Website to Android App Converter
 
-A full-stack web application that converts any website into a standalone Android APK file with custom branding and restricted browsing.
+Convert any website into a standalone Android APK with one click - **completely serverless** using only GitHub infrastructure!
 
-## Features
+[![Live Demo](https://img.shields.io/badge/Live-Demo-success)](https://alltechdev.github.io/apk/)
+[![GitHub Pages](https://img.shields.io/badge/Hosted-GitHub_Pages-blue)](https://pages.github.com/)
+[![Serverless](https://img.shields.io/badge/Architecture-Serverless-orange)](SERVERLESS.md)
+[![Cost](https://img.shields.io/badge/Cost-FREE-brightgreen)](https://github.com/pricing)
 
-- **One-Click Conversion**: Convert any website to an Android app instantly
-- **Custom Branding**: Upload custom app icons with built-in cropping tool
-- **Domain Restriction**: Restrict app navigation to specific domains only
-- **Media Blocking**: Optional blocking of images, videos, and embedded content
-- **Ad Blocker**: Built-in advertisement blocking
-- **SSL Handling**: Option to ignore SSL errors for development
-- **Orientation Control**: Auto, landscape, or portrait mode
-- **Additional Domains**: Whitelist additional domains for login systems, etc.
-- **Real-time Progress**: Socket.IO for live build status updates
+## ✨ Features
 
-## Architecture
+- 🌐 **100% Serverless** - No backend server needed
+- 🆓 **Completely Free** - Uses GitHub's free tier
+- ⚡ **Fast Builds** - APKs ready in 2-3 minutes
+- 🎨 **Custom Branding** - Upload your own app icon
+- 🔒 **Domain Restriction** - Lock app to specific websites
+- 🚫 **Ad Blocker** - Built-in advertisement blocking
+- 📱 **Orientation Control** - Portrait, landscape, or auto
+- 🌍 **Global CDN** - Downloads served from GitHub's CDN
+- 📦 **Unlimited Storage** - GitHub Releases for all APKs
+- 🔍 **Public Audit Trail** - All builds tracked via Issues
 
-### Frontend
-- HTML5 + JavaScript (ES6 Modules)
-- Material Design Bootstrap (MDB)
-- Socket.IO Client for real-time communication
-- SweetAlert2 for modals
-- CropSelectJS for image cropping
+## 🎯 Live Demo
 
-### Backend
-- Node.js + Express
-- Socket.IO Server
-- Sharp for image processing
-- Multer for file uploads
-- Gradle for Android builds
+**Try it now:** [https://alltechdev.github.io/apk/](https://alltechdev.github.io/apk/)
 
-### Android Template
-Based on [AndroidRestrictedWebView](https://github.com/lo-mityaesh/AndroidRestrictedWebView) by @lo-mityaesh
+## 🏗️ How It Works
 
-## Prerequisites
+Our innovative serverless architecture uses GitHub infrastructure exclusively:
 
-### Required
-- **Node.js** 16+ ([Download](https://nodejs.org/))
-- **Java JDK** 11+ ([Download](https://adoptium.net/))
-- **Android SDK** ([Download Android Studio](https://developer.android.com/studio))
-- **Git**
-
-### Optional
-- **Docker** (for containerized deployment)
-
-## Quick Start
-
-### Option 1: Automated Setup (Linux/Mac)
-
-```bash
-# Clone the repository
-git clone https://github.com/alltechdev/apk.git
-cd apk
-
-# Run setup script
-chmod +x setup.sh
-./setup.sh
-
-# Start the server
-npm start
+```
+User → GitHub Pages → GitHub Issues → GitHub Actions → GitHub Releases
 ```
 
-### Option 2: Manual Setup
+1. **User fills form** on GitHub Pages
+2. **Creates GitHub Issue** with configuration
+3. **GitHub Actions** automatically builds APK
+4. **Uploads to Releases** with download link
+5. **Comments on issue** when complete
+6. **User downloads** APK from GitHub
 
+👉 **[Read detailed architecture docs](SERVERLESS.md)**
+
+## 💰 Cost: $0/month
+
+| Resource | Free Tier | Usage |
+|----------|-----------|-------|
+| GitHub Pages | Unlimited | Frontend hosting |
+| GitHub Actions | 2,000 min/month | ~1,000 APK builds |
+| GitHub Releases | Unlimited | APK storage |
+| GitHub Issues | Unlimited | Build queue |
+
+**Total: FREE** within GitHub's free tier!
+
+## 🚀 Quick Start
+
+### Use the Live Site
+
+1. Visit [https://alltechdev.github.io/apk/](https://alltechdev.github.io/apk/)
+2. Enter your website URL
+3. Customize settings (optional)
+4. Click "Generate App"
+5. Wait 2-3 minutes
+6. Download your APK!
+
+### Fork for Your Own Use
+
+1. **Fork this repository**
+   ```bash
+   gh repo fork alltechdev/apk --clone
+   cd apk
+   ```
+
+2. **Update configuration**
+   Edit `docs/app.js`:
+   ```javascript
+   const GITHUB_OWNER = 'your-username';
+   const GITHUB_REPO = 'apk';
+   ```
+
+3. **Enable GitHub Pages**
+   - Go to Settings → Pages
+   - Source: `docs/` folder
+   - Save
+
+4. **Done!** Your site is live at:
+   ```
+   https://your-username.github.io/apk/
+   ```
+
+## 📖 Documentation
+
+- **[Serverless Architecture](SERVERLESS.md)** - How it all works
+- **[Frontend Docs](docs/README.md)** - GitHub Pages setup
+- **[Deployment Guide](DEPLOYMENT.md)** - Alternative deployments
+- **[Contributing](CONTRIBUTING.md)** - How to contribute
+
+## 🎨 Features in Detail
+
+### Custom App Icon
+- Upload any image
+- Built-in cropping tool
+- Automatically resized for all Android densities
+- Square format enforced
+
+### Domain Whitelisting
+- Restrict navigation to main domain
+- Add up to 3 additional domains
+- Perfect for external login systems
+- Prevents users from leaving your app
+
+### Media & Ad Blocking
+- Block images, videos, and embedded content
+- Built-in ad blocker
+- Reduces data usage
+- Faster page loads
+
+### SSL & Security
+- Option to ignore SSL errors (for development)
+- All builds are public and auditable
+- No data collection
+- Open source and transparent
+
+### Orientation Control
+- Auto (recommended)
+- Force landscape
+- Force portrait
+- Set per-app
+
+## 📊 Build Process
+
+```mermaid
+graph LR
+    A[User Form] --> B[Create Issue]
+    B --> C[Trigger Workflow]
+    C --> D[Setup Android SDK]
+    D --> E[Build APK]
+    E --> F[Create Release]
+    F --> G[Comment on Issue]
+    G --> H[User Downloads]
+```
+
+Average build time: **2-3 minutes**
+
+## 🔧 Advanced Usage
+
+### With Node.js Backend (Optional)
+
+If you prefer a traditional server:
 ```bash
-# Clone the repository
-git clone https://github.com/alltechdev/apk.git
-cd apk
-
-# Install dependencies
 npm install
-
-# Clone Android template
-git clone https://github.com/lo-mityaesh/AndroidRestrictedWebView.git
-
-# Create directories
-mkdir -p uploads output public
-
-# Configure environment
-cp .env.example .env
-
-# Make gradlew executable
-chmod +x AndroidRestrictedWebView/gradlew
-
-# Start the server
 npm start
 ```
 
-### Option 3: Docker
+See [DEPLOYMENT.md](DEPLOYMENT.md) for details.
+
+### With Docker
 
 ```bash
-# Clone the repository
-git clone https://github.com/alltechdev/apk.git
-cd apk
-
-# Clone Android template first
-git clone https://github.com/lo-mityaesh/AndroidRestrictedWebView.git
-
-# Build and run with Docker Compose
 docker-compose up -d
 ```
 
-## Configuration
-
-### Environment Variables
-
-Create a `.env` file based on `.env.example`:
-
-```env
-# Server Configuration
-PORT=3000
-
-# Cleanup Configuration
-CLEANUP_INTERVAL_HOURS=1
-MAX_FILE_AGE_HOURS=24
-
-# Security
-MAX_FILE_SIZE_MB=5
-```
-
-### Android SDK Setup
-
-1. Install Android Studio
-2. Open SDK Manager (Tools → SDK Manager)
-3. Install:
-   - Android SDK Platform 33
-   - Android SDK Build-Tools 33.0.0
-   - Android SDK Platform-Tools
-
-4. Set environment variables:
+### With GitHub Actions Only (Recommended)
 
 ```bash
-# Linux/Mac (~/.bashrc or ~/.zshrc)
-export ANDROID_SDK_ROOT=$HOME/Android/Sdk
-export PATH=$PATH:$ANDROID_SDK_ROOT/platform-tools
-
-# Windows (System Environment Variables)
-ANDROID_SDK_ROOT=C:\Users\YourName\AppData\Local\Android\Sdk
+# Already set up! Just use the live site
+# https://alltechdev.github.io/apk/
 ```
 
-## Usage
+## 📝 API Reference
 
-1. **Start the server:**
-   ```bash
-   npm start
-   ```
+### GitHub Issues Format
 
-2. **Open your browser:**
-   ```
-   http://localhost:3000
-   ```
+Create an issue with label `apk-build`:
 
-3. **Fill in the form:**
-   - Enter website URL (e.g., `example.com`)
-   - Upload custom icon (optional)
-   - Configure settings
-   - Click "Generate App"
-
-4. **Download APK:**
-   - Wait ~2 minutes for build
-   - Download generated APK file
-   - Install on Android device
-
-## API Documentation
-
-### Socket.IO Events
-
-#### Client → Server
-
-**Event: `generate-apk`**
-
-Payload:
-```javascript
+```json
 {
-  url: string,                // Domain to convert
-  additionalDomains: string[], // Additional allowed domains
-  appName: string,            // App name (optional)
-  blockMedia: boolean,        // Block images/videos
-  viewMode: string,           // AUTO|LANDSCAPE|PORTRAIT
-  startUpUrl: string,         // Custom startup URL
-  icon: Buffer|string,        // App icon (base64 or buffer)
-  adsBlocker: boolean,        // Enable ad blocker
-  noSslMode: boolean          // Ignore SSL errors
+  "buildId": "build-1234567890",
+  "domain": "example.com",
+  "url": "example.com",
+  "appName": "Example App",
+  "blockMedia": false,
+  "viewMode": "AUTO",
+  "startUpUrl": "https://example.com",
+  "adsBlocker": true,
+  "noSslMode": false,
+  "additionalDomains": []
 }
 ```
 
-#### Server → Client
+The workflow will automatically process it!
 
-**Event: `done`**
+## 🎯 Use Cases
 
-Payload:
-```javascript
-{
-  domain: string,       // Domain name
-  downloadUrl: string,  // APK download URL
-  appName: string,      // App name
-  viewMode: string,     // View mode used
-  blockMedia: boolean   // Media blocking status
-}
-```
+- **Progressive Web Apps** - Distribute PWAs as APKs
+- **Internal Tools** - Company intranet apps
+- **Client Portals** - Custom-branded client access
+- **Event Apps** - Quick apps for events/conferences
+- **Testing** - Test websites in app context
+- **Kiosks** - Locked-down tablet apps
+- **Education** - Learning platform apps
 
-**Event: `error`**
+## 🌟 Why This Project?
 
-Payload:
-```javascript
-{
-  message: string  // Error description
-}
-```
+### Problem
+Creating Android apps from websites traditionally requires:
+- Android Studio
+- Java/Kotlin knowledge
+- Build server
+- Signing keys
+- Distribution infrastructure
 
-### HTTP Endpoints
+### Solution
+We use GitHub's infrastructure to:
+- ✅ Build APKs automatically
+- ✅ Host frontend for free
+- ✅ Store APKs indefinitely
+- ✅ Queue builds via Issues
+- ✅ Track everything publicly
+- ✅ Scale automatically
 
-**GET `/health`**
-- Health check endpoint
-- Returns: `{ status: 'ok', message: 'APK Builder Server Running' }`
+**Result: Anyone can create Android apps with zero setup!**
 
-**GET `/download/:filename`**
-- Download generated APK
-- Requires valid filename
-- Returns: APK file or 404 error
+## 📈 Limitations
 
-## Project Structure
+- GitHub Actions: 2,000 free minutes/month (~1,000 builds)
+- Build timeout: 15 minutes per APK
+- All builds are public
+- No automatic app signing (debug keys used)
+- Manual submission to Play Store required
 
-```
-apk-builder/
-├── server.js                    # Main server file
-├── package.json                 # Dependencies
-├── .env.example                 # Environment template
-├── .gitignore                   # Git ignore rules
-├── setup.sh                     # Setup script
-├── Dockerfile                   # Docker configuration
-├── docker-compose.yml           # Docker Compose config
-├── README.md                    # This file
-├── public/                      # Frontend files
-│   ├── index.html              # Main HTML
-│   ├── index.js                # Frontend logic
-│   ├── css.css                 # Custom styles
-│   ├── crop-select-js.min.css  # Cropping styles
-│   └── crop-select-js.min.js   # Cropping library
-├── AndroidRestrictedWebView/    # Android template (cloned)
-├── uploads/                     # Temporary build files
-└── output/                      # Generated APK files
-```
+## 🤝 Contributing
 
-## Development
+Contributions welcome! This project is:
+- ✅ Open source (MIT license)
+- ✅ Beginner-friendly
+- ✅ Well-documented
+- ✅ Actively maintained
 
-### Running in Development Mode
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
-```bash
-# Install nodemon
-npm install -g nodemon
+## 🙏 Credits
 
-# Start with auto-reload
-npm run dev
-```
+- **Android Template:** [AndroidRestrictedWebView](https://github.com/lo-mityaesh/AndroidRestrictedWebView) by @lo-mityaesh
+- **Original Inspiration:** app-builder.madrichim.ovh (archived)
+- **Infrastructure:** GitHub (Pages, Actions, Releases)
 
-### Debugging
+## 📜 License
 
-Enable debug logging:
+MIT License - use freely for any purpose!
 
-```javascript
-// In server.js, add at the top:
-const DEBUG = true;
-```
+## 🔗 Links
 
-Check logs:
-- Server logs: Console output
-- Build logs: `uploads/<build-id>/build.log`
-
-### Testing
-
-Test the API with curl:
-
-```bash
-# Health check
-curl http://localhost:3000/health
-
-# Test Socket.IO connection
-npm install -g wscat
-wscat -c ws://localhost:3000/socket.io/?EIO=4&transport=websocket
-```
-
-## Deployment
-
-### Production Deployment
-
-1. **Set environment to production:**
-   ```bash
-   export NODE_ENV=production
-   ```
-
-2. **Use a process manager:**
-   ```bash
-   # Using PM2
-   npm install -g pm2
-   pm2 start server.js --name apk-builder
-   pm2 save
-   pm2 startup
-   ```
-
-3. **Set up reverse proxy (Nginx):**
-   ```nginx
-   server {
-       listen 80;
-       server_name yourdomain.com;
-
-       location / {
-           proxy_pass http://localhost:3000;
-           proxy_http_version 1.1;
-           proxy_set_header Upgrade $http_upgrade;
-           proxy_set_header Connection 'upgrade';
-           proxy_set_header Host $host;
-           proxy_cache_bypass $http_upgrade;
-       }
-   }
-   ```
-
-4. **Enable HTTPS:**
-   ```bash
-   sudo certbot --nginx -d yourdomain.com
-   ```
-
-### Docker Deployment
-
-```bash
-# Build image
-docker build -t apk-builder .
-
-# Run container
-docker run -d \
-  -p 3000:3000 \
-  -v $(pwd)/uploads:/app/uploads \
-  -v $(pwd)/output:/app/output \
-  --name apk-builder \
-  apk-builder
-```
-
-## Troubleshooting
-
-### Build Fails
-
-**Problem:** Gradle build fails
-**Solution:**
-- Ensure Java 11+ is installed: `java -version`
-- Check Android SDK: `echo $ANDROID_SDK_ROOT`
-- Verify gradlew is executable: `chmod +x AndroidRestrictedWebView/gradlew`
-
-### Socket.IO Connection Issues
-
-**Problem:** Client can't connect
-**Solution:**
-- Check server is running: `curl http://localhost:3000/health`
-- Verify port is not blocked
-- Check browser console for errors
-
-### APK Installation Fails
-
-**Problem:** "App not installed" error
-**Solution:**
-- Enable "Install from unknown sources" on Android
-- Check APK is not corrupted (re-download)
-- Ensure Android version is compatible (Android 5.0+)
-
-### Memory Issues
-
-**Problem:** Server crashes during build
-**Solution:**
-- Increase Node.js memory: `NODE_OPTIONS=--max-old-space-size=4096 npm start`
-- Reduce concurrent builds
-- Clean old files regularly
-
-## Security Considerations
-
-- **File Upload Validation**: Only images allowed for icons
-- **Directory Traversal**: Protected against path traversal attacks
-- **File Size Limits**: Max 5MB for uploads
-- **Automatic Cleanup**: Old files deleted after 24 hours
-- **Domain Validation**: Regex validation for domain inputs
-- **No Code Injection**: User inputs are escaped in XML
-
-## Performance
-
-- Average build time: 1-2 minutes
-- Concurrent builds supported
-- Auto cleanup of old files
-- File size: Generated APKs ~2-5MB
-
-## Credits
-
-- **Original Website**: app-builder.madrichim.ovh (archived)
-- **Android Template**: [AndroidRestrictedWebView](https://github.com/lo-mityaesh/AndroidRestrictedWebView) by @lo-mityaesh
-- **Frontend Recreation**: Based on Wayback Machine archive
-
-## License
-
-MIT License - See LICENSE file for details
-
-## Contributing
-
-Contributions welcome! Please:
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
-
-## Support
-
-- Issues: [GitHub Issues](https://github.com/alltechdev/apk/issues)
-- Discussions: [GitHub Discussions](https://github.com/alltechdev/apk/discussions)
-
-## Roadmap
-
-- [ ] iOS app generation
-- [ ] Custom splash screens
-- [ ] App signing automation
-- [ ] Play Store metadata generation
-- [ ] Multi-language support
-- [ ] Advanced WebView customization
-- [ ] Analytics integration
-- [ ] Push notification support
+- **Live App:** https://alltechdev.github.io/apk/
+- **GitHub Repo:** https://github.com/alltechdev/apk
+- **Issues/Builds:** https://github.com/alltechdev/apk/issues
+- **Releases/Downloads:** https://github.com/alltechdev/apk/releases
+- **Discussions:** https://github.com/alltechdev/apk/discussions
 
 ---
 
-**Note**: This tool is for educational purposes. Ensure you have rights to convert websites into apps.
+**Made with ❤️ using only GitHub infrastructure**
+
+[⭐ Star this repo](https://github.com/alltechdev/apk) if you find it useful!

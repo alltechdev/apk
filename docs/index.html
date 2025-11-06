@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <title>APK Builder - Turn Website into App</title>
+        <!-- Font Awesome -->
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet"/>
+        <!-- Google Fonts -->
+        <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet"/>
+        <!-- MDB -->
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/7.1.0/mdb.min.css" rel="stylesheet"/>
+        <!-- crop-select-js -->
+        <link href="crop-select-js.min.css" rel="stylesheet"/>
+        <!-- css -->
+        <link href="css.css" rel="stylesheet"/>
+        <style>
+            .github-badge {
+                background: #24292e;
+                color: white;
+                padding: 10px 15px;
+                border-radius: 5px;
+                display: inline-block;
+                margin-top: 10px;
+            }
+            .github-badge i {
+                margin-right: 5px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div data-draggable="true" style="position: relative">
+            <section draggable="false" class="container pt-5" data-v-271253ee="">
+                <section class="text-center">
+                    <div class="row d-flex justify-content-center">
+                        <div class="col-lg-6">
+                            <h2 class="fw-bold mb-3">Website to App with One Click</h2>
+                            <p class="text-muted mb-4">Create a custom Android app that displays a specific website. Completely serverless - powered by GitHub Actions!</p>
+
+                            <div class="github-badge mb-4">
+                                <i class="fab fa-github"></i>
+                                100% GitHub Hosted - No Server Required
+                            </div>
+
+                            <form id="apkForm">
+                                <div class="mb-3">
+                                    <div class="form-outline mb-2">
+                                        <input type="text" required id="url" class="form-control"/>
+                                        <label class="form-label" for="url">Website URL</label>
+                                        <div class="form-notch">
+                                            <div class="form-notch-leading" style="width: 9px"></div>
+                                            <div class="form-notch-middle" style="width: 88px"></div>
+                                            <div class="form-notch-trailing"></div>
+                                        </div>
+                                    </div>
+                                    <div class="form-check d-flex justify-content-start mb-2">
+                                        <input class="form-check-input me-2" type="checkbox" checked id="useHomePage"/>
+                                        <label class="form-check-label" for="useHomePage">Open at website homepage instead of exact URL</label>
+                                    </div>
+                                    <div id="customStartupUrlContainer" style="display: none">
+                                        <div class="form-outline mb-2">
+                                            <input type="url" id="startUpUrl" class="form-control"/>
+                                            <label class="form-label" for="startUpUrl">Startup page URL</label>
+                                            <div class="form-notch">
+                                                <div class="form-notch-leading" style="width: 9px"></div>
+                                                <div class="form-notch-middle" style="width: 120px"></div>
+                                                <div class="form-notch-trailing"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-outline mb-3">
+                                    <input type="text" id="name" class="form-control"/>
+                                    <label class="form-label" for="name">App name (optional)</label>
+                                    <div class="form-notch">
+                                        <div class="form-notch-leading" style="width: 9px"></div>
+                                        <div class="form-notch-middle" style="width: 136px"></div>
+                                        <div class="form-notch-trailing"></div>
+                                    </div>
+                                </div>
+                                <div class="form-outline mb-3">
+                                    <input type="file" accept="image/*" id="icon" class="form-control active"/>
+                                    <label class="form-label" for="icon">App icon (optional)</label>
+                                    <div class="form-notch">
+                                        <div class="form-notch-leading" style="width: 9px"></div>
+                                        <div class="form-notch-middle" style="width: 139px"></div>
+                                        <div class="form-notch-trailing"></div>
+                                    </div>
+                                </div>
+                                <div class="form-check d-flex justify-content-start mb-2">
+                                    <input class="form-check-input me-2" type="checkbox" checked id="forcePortrait"/>
+                                    <label class="form-check-label" for="blockMedia">Block media <span class="text-muted small">(images, videos and embedded content)</span></label>
+                                </div>
+                                <div class="form-check d-flex justify-content-start mb-3">
+                                    <input class="form-check-input me-2" type="checkbox" checked id="adsBlocker"/>
+                                    <label class="form-check-label" for="adsBlocker">Built-in ad blocker</label>
+                                </div>
+                                <div class="btn btn-link d-flex justify-content-center mb-3" id="advancedOptions">
+                                    <i class="fas fa-chevron-down me-2 mt-1"></i>
+                                    Advanced options
+                                </div>
+                                <div id="advancedOptionsContainer" style="display: none">
+                                    <div class="form-check d-flex justify-content-start mb-3">
+                                        <input class="form-check-input me-2" type="checkbox" id="noSslMode"/>
+                                        <label class="form-check-label" for="noSslMode">Ignore SSL errors <span class="text-danger small">Not recommended for sensitive sites</span></label>
+                                    </div>
+
+                                    <div class="card border mb-3" style="border-color: #dee2e6 !important; box-shadow: none">
+                                        <div class="card-body p-3">
+                                            <h6 class="mb-1">Additional allowed websites</h6>
+                                            <p class="text-muted small mb-3">Additional domains that the app will allow access to (for example: external domain for account login)</p>
+
+                                            <div class="form-outline mb-3">
+                                                <input type="text" id="additionalDomain1" class="form-control"/>
+                                                <label class="form-label" for="additionalDomain1">Additional domain 1</label>
+                                                <div class="form-notch">
+                                                    <div class="form-notch-leading" style="width: 9px"></div>
+                                                    <div class="form-notch-middle" style="width: 140px"></div>
+                                                    <div class="form-notch-trailing"></div>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-outline mb-3">
+                                                <input type="text" id="additionalDomain2" class="form-control"/>
+                                                <label class="form-label" for="additionalDomain2">Additional domain 2</label>
+                                                <div class="form-notch">
+                                                    <div class="form-notch-leading" style="width: 9px"></div>
+                                                    <div class="form-notch-middle" style="width: 140px"></div>
+                                                    <div class="form-notch-trailing"></div>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-outline mb-3">
+                                                <input type="text" id="additionalDomain3" class="form-control"/>
+                                                <label class="form-label" for="additionalDomain3">Additional domain 3</label>
+                                                <div class="form-notch">
+                                                    <div class="form-notch-leading" style="width: 9px"></div>
+                                                    <div class="form-notch-middle" style="width: 140px"></div>
+                                                    <div class="form-notch-trailing"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-outline mb-3">
+                                        <label class="form-label" for="viewMode">View mode:</label>
+                                        <select id="viewMode" class="form-select">
+                                            <option value="AUTO">Automatic (recommended)</option>
+                                            <option value="LANDSCAPE">Always landscape</option>
+                                            <option value="PORTRAIT">Always portrait</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-success btn-block mb-3">Generate App</button>
+                            </form>
+                            <hr/>
+                            <a href="https://github.com/alltechdev/apk" target="_blank"><i class="fab fa-github"></i> View on GitHub</a> |
+                            Based on the open-source project by @lo-mityaesh: <a href="https://github.com/lo-mityaesh/AndroidRestrictedWebView" target="_blank">AndroidRestrictedWebView</a>
+                        </div>
+                    </div>
+                </section>
+            </section>
+        </div>
+    </body>
+
+    <!-- JQuery -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <!-- Sweetalert -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- MDB -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/7.1.0/mdb.umd.min.js"></script>
+    <!-- crop-select-js -->
+    <script src="crop-select-js.min.js"></script>
+    <!-- Main -->
+    <script type="module" src="app.js"></script>
+</html>
