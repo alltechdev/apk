@@ -149,7 +149,7 @@ body {
   box-shadow: var(--shadow-xl), inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
   position: relative;
   z-index: 10;
-  max-width: 980px;
+  max-width: 1200px;
   margin: 0 auto;
   animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -908,13 +908,17 @@ hr {
 
 @media (min-width: 1024px) {
   .form-container {
-    max-width: 980px;
+    max-width: 1200px;
   }
 }
 
 @media (min-width: 1280px) {
+  .form-container {
+    max-width: 1400px;
+  }
+
   #buildHistorySection .container {
-    max-width: 1280px;
+    max-width: 1400px;
   }
 }
 
