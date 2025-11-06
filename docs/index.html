@@ -8,7 +8,7 @@
         <!-- Font Awesome -->
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet"/>
         <!-- Google Fonts -->
-        <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet"/>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
         <!-- MDB -->
         <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/7.1.0/mdb.min.css" rel="stylesheet"/>
         <!-- crop-select-js -->
@@ -19,14 +19,17 @@
 
     <body>
         <div data-draggable="true" style="position: relative">
-            <section draggable="false" class="container pt-5" data-v-271253ee="">
-                <section class="text-center">
+            <section draggable="false" class="hero-section" data-v-271253ee="">
+                <div class="container">
                     <div class="row d-flex justify-content-center">
-                        <div class="col-lg-6">
-                            <h2 class="fw-bold mb-3">Website to App with One Click</h2>
-                            <p class="text-muted mb-4">Create a custom Android app that displays a specific website.</p>
+                        <div class="col-lg-7 col-xl-6">
+                            <div class="form-container">
+                                <div class="form-header">
+                                    <h1 class="form-title">Website to App with One Click</h1>
+                                    <p class="form-subtitle">Create a custom Android app that displays your website.</p>
+                                </div>
 
-                            <form id="apkForm">
+                                <form id="apkForm">
                                 <div class="mb-3">
                                     <div class="form-outline mb-2">
                                         <input type="text" required id="url" class="form-control"/>
@@ -136,18 +139,24 @@
                                     </div>
                                 </div>
                                 <button type="submit" class="btn btn-success btn-block mb-3">Generate App</button>
-                            </form>
-                            <hr/>
-                            <a href="https://github.com/alltechdev/apk" target="_blank"><i class="fab fa-github"></i> View on GitHub</a> |
-                            Based on the open-source project by @lo-mityaesh: <a href="https://github.com/lo-mityaesh/AndroidRestrictedWebView" target="_blank">AndroidRestrictedWebView</a>
+                                </form>
+
+                                <hr style="border-color: var(--gray-200); margin: var(--space-5) 0;"/>
+                                <div style="text-align: center; font-size: 0.875rem; color: var(--gray-600);">
+                                    <a href="https://github.com/alltechdev/apk" target="_blank"><i class="fab fa-github"></i> View on GitHub</a> |
+                                    Based on the open-source project by @lo-mityaesh: <a href="https://github.com/lo-mityaesh/AndroidRestrictedWebView" target="_blank">AndroidRestrictedWebView</a>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </section>
+                </div>
+            </section>
 
-                <!-- APK Build History Section -->
-                <section class="text-center mt-5" id="buildHistorySection">
+            <!-- APK Build History Section -->
+            <section id="buildHistorySection">
+                <div class="container">
                     <div class="row d-flex justify-content-center">
-                        <div class="col-lg-8">
+                        <div class="col-lg-10">
                             <h3 class="fw-bold mb-4">Built APKs</h3>
 
                             <div id="buildHistoryLoading" class="mb-3">
@@ -179,7 +188,7 @@
                             </div>
                         </div>
                     </div>
-                </section>
+                </div>
             </section>
         </div>
     </body>
