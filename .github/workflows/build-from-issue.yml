@@ -138,16 +138,16 @@ jobs:
 
           # Create config.json using cat with here-document
           cat > $PROJECT_DIR/app/src/main/assets/config.json <<'EOF'
-{
-  "domain": "DOMAIN_VALUE",
-  "startUrl": "STARTURL_VALUE",
-  "allowedDomains": ALLOWEDDOMAINS_VALUE,
-  "blockMedia": BLOCKMEDIA_VALUE,
-  "adBlocker": ADBLOCKER_VALUE,
-  "ignoreSSLErrors": IGNORESSL_VALUE,
-  "orientation": "ORIENTATION_VALUE"
-}
-EOF
+          {
+            "domain": "DOMAIN_VALUE",
+            "startUrl": "STARTURL_VALUE",
+            "allowedDomains": ALLOWEDDOMAINS_VALUE,
+            "blockMedia": BLOCKMEDIA_VALUE,
+            "adBlocker": ADBLOCKER_VALUE,
+            "ignoreSSLErrors": IGNORESSL_VALUE,
+            "orientation": "ORIENTATION_VALUE"
+          }
+          EOF
 
           # Replace placeholders with actual values
           sed -i 's|DOMAIN_VALUE|${{ steps.parse.outputs.domain }}|' $PROJECT_DIR/app/src/main/assets/config.json
