@@ -137,17 +137,26 @@ jobs:
           fi
 
           # Create config.json
-          cat > $PROJECT_DIR/app/src/main/assets/config.json <<EOF
+          cat > $PROJECT_DIR/app/src/main/assets/config.json << 'CONFIGEOF'
           {
-            "domain": "${{ steps.parse.outputs.domain }}",
-            "startUrl": "${{ steps.parse.outputs.startUpUrl }}",
-            "allowedDomains": $ALLOWED_DOMAINS,
-            "blockMedia": ${{ steps.parse.outputs.blockMedia }},
-            "adBlocker": ${{ steps.parse.outputs.adsBlocker }},
-            "ignoreSSLErrors": ${{ steps.parse.outputs.noSslMode }},
-            "orientation": "${{ steps.parse.outputs.viewMode }}"
+            "domain": "DOMAIN_PLACEHOLDER",
+            "startUrl": "STARTURL_PLACEHOLDER",
+            "allowedDomains": ALLOWED_DOMAINS_PLACEHOLDER,
+            "blockMedia": BLOCKMEDIA_PLACEHOLDER,
+            "adBlocker": ADBLOCKER_PLACEHOLDER,
+            "ignoreSSLErrors": IGNORESSL_PLACEHOLDER,
+            "orientation": "ORIENTATION_PLACEHOLDER"
           }
-EOF
+CONFIGEOF
+
+          # Replace placeholders
+          sed -i "s|DOMAIN_PLACEHOLDER|${{ steps.parse.outputs.domain }}|g" $PROJECT_DIR/app/src/main/assets/config.json
+          sed -i "s|STARTURL_PLACEHOLDER|${{ steps.parse.outputs.startUpUrl }}|g" $PROJECT_DIR/app/src/main/assets/config.json
+          sed -i "s|ALLOWED_DOMAINS_PLACEHOLDER|$ALLOWED_DOMAINS|g" $PROJECT_DIR/app/src/main/assets/config.json
+          sed -i "s|BLOCKMEDIA_PLACEHOLDER|${{ steps.parse.outputs.blockMedia }}|g" $PROJECT_DIR/app/src/main/assets/config.json
+          sed -i "s|ADBLOCKER_PLACEHOLDER|${{ steps.parse.outputs.adsBlocker }}|g" $PROJECT_DIR/app/src/main/assets/config.json
+          sed -i "s|IGNORESSL_PLACEHOLDER|${{ steps.parse.outputs.noSslMode }}|g" $PROJECT_DIR/app/src/main/assets/config.json
+          sed -i "s|ORIENTATION_PLACEHOLDER|${{ steps.parse.outputs.viewMode }}|g" $PROJECT_DIR/app/src/main/assets/config.json
 
           echo "Configuration created:"
           cat $PROJECT_DIR/app/src/main/assets/config.json
