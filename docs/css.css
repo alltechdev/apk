@@ -299,7 +299,7 @@ select.form-select option {
   display: flex;
   align-items: flex-start;
   gap: var(--space-4);
-  padding: var(--space-4) var(--space-5);
+  padding: var(--space-4) var(--space-5) var(--space-4) var(--space-6);
   background: transparent;
   border: 1px solid transparent;
   border-radius: var(--radius-lg);
@@ -783,31 +783,31 @@ hr {
 
 @media (max-width: 768px) {
   .hero-section {
-    padding: var(--space-4) 0;
+    padding: var(--space-8) 0;
     min-height: auto;
   }
 
   .form-container {
-    padding: var(--space-4);
-    margin: var(--space-2);
+    padding: var(--space-6);
+    margin: var(--space-4);
     border-radius: var(--radius-xl);
   }
 
   .form-header {
-    margin-bottom: var(--space-5);
+    margin-bottom: var(--space-6);
   }
 
   .form-title {
-    font-size: 1.75rem;
-    margin-bottom: var(--space-2);
+    font-size: 2rem;
+    margin-bottom: var(--space-3);
   }
 
   .form-subtitle {
-    font-size: 0.9375rem;
+    font-size: 1rem;
   }
 
   .form-outline {
-    margin-bottom: var(--space-4);
+    margin-bottom: var(--space-5);
   }
 
   .form-control,
@@ -815,11 +815,11 @@ hr {
   select.form-select {
     height: 56px;
     font-size: 16px; /* Prevents iOS zoom */
-    padding: 0 var(--space-4);
+    padding: 0 var(--space-5);
   }
 
   .form-check {
-    padding: var(--space-3);
+    padding: var(--space-4);
     min-height: 48px;
   }
 
@@ -841,20 +841,20 @@ hr {
 
   .btn-link,
   .btn.btn-link {
-    padding: var(--space-3);
+    padding: var(--space-4);
   }
 
   #buildHistorySection {
-    padding: var(--space-8) 0;
+    padding: var(--space-10) 0;
   }
 
   #buildHistorySection h3 {
-    font-size: 1.5rem;
-    margin-bottom: var(--space-5);
+    font-size: 1.75rem;
+    margin-bottom: var(--space-6);
   }
 
   #buildHistoryList .card-body {
-    padding: var(--space-4);
+    padding: var(--space-5);
   }
 
   #buildHistoryList .card-title {
