@@ -153,16 +153,22 @@ jobs:
       - name: Rename and prepare APK
         run: |
           PROJECT_DIR="build/${{ steps.parse.outputs.buildId }}/project"
-          APK_PATH="$PROJECT_DIR/app/build/outputs/apk/release/app-release.apk"
+          OUTPUT_DIR="$PROJECT_DIR/app/build/outputs/apk/release"
           OUTPUT_NAME="${{ steps.parse.outputs.appName }}-${{ steps.parse.outputs.buildId }}.apk"
 
-          if [ -f "$APK_PATH" ]; then
-            cp "$APK_PATH" "$OUTPUT_NAME"
+          # List all files in the output directory
+          ls -lh "$OUTPUT_DIR" || true
+
+          # Find the APK file (could be app-release-unsigned.apk or app-release.apk)
+          APK_FILE=$(find "$OUTPUT_DIR" -name "*.apk" | head -n 1)
+
+          if [ -n "$APK_FILE" ] && [ -f "$APK_FILE" ]; then
+            cp "$APK_FILE" "$OUTPUT_NAME"
             echo "APK built successfully: $OUTPUT_NAME"
             ls -lh "$OUTPUT_NAME"
             echo "APK_FILE=$OUTPUT_NAME" >> $GITHUB_ENV
           else
-            echo "❌ APK not found at expected location"
+            echo "❌ APK not found in $OUTPUT_DIR"
             exit 1
           fi
 
