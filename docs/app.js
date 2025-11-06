@@ -3,9 +3,8 @@ const GITHUB_OWNER = 'alltechdev';
 const GITHUB_REPO = 'apk';
 const GITHUB_API = 'https://api.github.com';
 
-// Cloudflare Worker endpoint (deploy worker first and update this URL)
-// For now, falls back to creating issues directly (requires user to be logged into GitHub)
-const WORKER_URL = null; // Set to your worker URL: 'https://apk-builder-worker.your-subdomain.workers.dev'
+// Cloudflare Worker endpoint - No authentication required!
+const WORKER_URL = 'https://apk-builder-worker.abesternheim.workers.dev';
 
 function showErrorModal(text) {
     Swal.fire({
