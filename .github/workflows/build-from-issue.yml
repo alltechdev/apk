@@ -136,27 +136,27 @@ jobs:
             ALLOWED_DOMAINS="$ALLOWED_DOMAINS]"
           fi
 
-          # Create config.json
-          cat > $PROJECT_DIR/app/src/main/assets/config.json << 'CONFIGEOF'
-          {
-            "domain": "DOMAIN_PLACEHOLDER",
-            "startUrl": "STARTURL_PLACEHOLDER",
-            "allowedDomains": ALLOWED_DOMAINS_PLACEHOLDER,
-            "blockMedia": BLOCKMEDIA_PLACEHOLDER,
-            "adBlocker": ADBLOCKER_PLACEHOLDER,
-            "ignoreSSLErrors": IGNORESSL_PLACEHOLDER,
-            "orientation": "ORIENTATION_PLACEHOLDER"
-          }
-CONFIGEOF
+          # Create config.json using cat with here-document
+          cat > $PROJECT_DIR/app/src/main/assets/config.json <<'EOF'
+{
+  "domain": "DOMAIN_VALUE",
+  "startUrl": "STARTURL_VALUE",
+  "allowedDomains": ALLOWEDDOMAINS_VALUE,
+  "blockMedia": BLOCKMEDIA_VALUE,
+  "adBlocker": ADBLOCKER_VALUE,
+  "ignoreSSLErrors": IGNORESSL_VALUE,
+  "orientation": "ORIENTATION_VALUE"
+}
+EOF
 
-          # Replace placeholders
-          sed -i "s|DOMAIN_PLACEHOLDER|${{ steps.parse.outputs.domain }}|g" $PROJECT_DIR/app/src/main/assets/config.json
-          sed -i "s|STARTURL_PLACEHOLDER|${{ steps.parse.outputs.startUpUrl }}|g" $PROJECT_DIR/app/src/main/assets/config.json
-          sed -i "s|ALLOWED_DOMAINS_PLACEHOLDER|$ALLOWED_DOMAINS|g" $PROJECT_DIR/app/src/main/assets/config.json
-          sed -i "s|BLOCKMEDIA_PLACEHOLDER|${{ steps.parse.outputs.blockMedia }}|g" $PROJECT_DIR/app/src/main/assets/config.json
-          sed -i "s|ADBLOCKER_PLACEHOLDER|${{ steps.parse.outputs.adsBlocker }}|g" $PROJECT_DIR/app/src/main/assets/config.json
-          sed -i "s|IGNORESSL_PLACEHOLDER|${{ steps.parse.outputs.noSslMode }}|g" $PROJECT_DIR/app/src/main/assets/config.json
-          sed -i "s|ORIENTATION_PLACEHOLDER|${{ steps.parse.outputs.viewMode }}|g" $PROJECT_DIR/app/src/main/assets/config.json
+          # Replace placeholders with actual values
+          sed -i 's|DOMAIN_VALUE|${{ steps.parse.outputs.domain }}|' $PROJECT_DIR/app/src/main/assets/config.json
+          sed -i 's|STARTURL_VALUE|${{ steps.parse.outputs.startUpUrl }}|' $PROJECT_DIR/app/src/main/assets/config.json
+          sed -i "s|ALLOWEDDOMAINS_VALUE|$ALLOWED_DOMAINS|" $PROJECT_DIR/app/src/main/assets/config.json
+          sed -i 's|BLOCKMEDIA_VALUE|${{ steps.parse.outputs.blockMedia }}|' $PROJECT_DIR/app/src/main/assets/config.json
+          sed -i 's|ADBLOCKER_VALUE|${{ steps.parse.outputs.adsBlocker }}|' $PROJECT_DIR/app/src/main/assets/config.json
+          sed -i 's|IGNORESSL_VALUE|${{ steps.parse.outputs.noSslMode }}|' $PROJECT_DIR/app/src/main/assets/config.json
+          sed -i 's|ORIENTATION_VALUE|${{ steps.parse.outputs.viewMode }}|' $PROJECT_DIR/app/src/main/assets/config.json
 
           echo "Configuration created:"
           cat $PROJECT_DIR/app/src/main/assets/config.json
