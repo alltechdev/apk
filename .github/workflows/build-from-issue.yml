@@ -98,9 +98,8 @@ jobs:
           sed -i "s|applicationId \".*\"|applicationId \"$PACKAGE_NAME\"|" \
             $PROJECT_DIR/app/build.gradle
 
-          # Update package in AndroidManifest.xml
-          sed -i "s|package=\".*\"|package=\"$PACKAGE_NAME\"|" \
-            $PROJECT_DIR/app/src/main/AndroidManifest.xml
+          # Remove package attribute from AndroidManifest.xml (deprecated in modern Android)
+          sed -i 's|package="[^"]*"||g' $PROJECT_DIR/app/src/main/AndroidManifest.xml
 
           # Update app name in strings.xml
           sed -i "s|<string name=\"app_name\">.*</string>|<string name=\"app_name\">${{ steps.parse.outputs.appName }}</string>|" \
