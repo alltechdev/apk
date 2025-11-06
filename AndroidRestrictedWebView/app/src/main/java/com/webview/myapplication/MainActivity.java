@@ -171,7 +171,8 @@ public class MainActivity extends Activity {
             String url = request.getUrl().toString();
 
             // Block media resources if blockMedia is enabled
-            if (config.isBlockMedia() && isMediaUrl(url)) {
+            // Only block if this is not a main frame request (not a page navigation)
+            if (config.isBlockMedia() && !request.isForMainFrame() && isMediaUrl(url)) {
                 // Return empty response to block the media
                 return new WebResourceResponse("text/plain", "UTF-8", null);
             }
@@ -201,7 +202,7 @@ public class MainActivity extends Activity {
     }
 
     private boolean isMediaUrl(String url) {
-        // Check for common media file extensions and patterns
+        // Check for common media file extensions and streaming domains
         String lowerUrl = url.toLowerCase();
 
         // Image formats
@@ -228,10 +229,14 @@ public class MainActivity extends Activity {
             }
         }
 
-        // Common media hosting domains and patterns
+        // Embedded video player domains (specific domains only, not broad patterns)
         String[] mediaPatterns = {
-            "youtube.com/embed", "player.vimeo.com", "dailymotion.com/embed",
-            "videocdn", "videoplayer", "/video/", "/media/", "streamable.com"
+            "youtube.com/embed",
+            "youtube-nocookie.com/embed",
+            "player.vimeo.com",
+            "dailymotion.com/embed",
+            "streamable.com/e/",
+            "streamable.com/o/"
         };
         for (String pattern : mediaPatterns) {
             if (lowerUrl.contains(pattern)) {
