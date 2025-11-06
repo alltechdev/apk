@@ -30,6 +30,8 @@ import androidx.core.app.ActivityCompat;
 
 import android.webkit.SslErrorHandler;
 import android.net.http.SslError;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 
 public class MainActivity extends Activity {
     private final int STORAGE_PERMISSION_CODE = 1;
@@ -86,8 +88,12 @@ public class MainActivity extends Activity {
 
         // Apply media blocking
         if (config.isBlockMedia()) {
+            // Block images
             webSettings.setBlockNetworkImage(true);
             webSettings.setLoadsImagesAutomatically(false);
+
+            // Block videos and audio autoplay
+            webSettings.setMediaPlaybackRequiresUserGesture(true);
         }
 
         mWebView.setWebChromeClient(new WebChromeClient() {
@@ -161,6 +167,24 @@ public class MainActivity extends Activity {
         }
 
         @Override
+        public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+            String url = request.getUrl().toString();
+
+            // Block media resources if blockMedia is enabled
+            if (config.isBlockMedia() && isMediaUrl(url)) {
+                // Return empty response to block the media
+                return new WebResourceResponse("text/plain", "UTF-8", null);
+            }
+
+            // Block ads if adBlocker is enabled
+            if (config.isAdBlocker() && isAdUrl(url)) {
+                return new WebResourceResponse("text/plain", "UTF-8", null);
+            }
+
+            return super.shouldInterceptRequest(view, request);
+        }
+
+        @Override
         public void onPageFinished(WebView view, String url) {
             super.onPageFinished(view, url);
             mProgressBar.setVisibility(View.GONE);
@@ -174,6 +198,48 @@ public class MainActivity extends Activity {
                 super.onReceivedSslError(view, handler, error);
             }
         }
+    }
+
+    private boolean isMediaUrl(String url) {
+        // Check for common media file extensions and patterns
+        String lowerUrl = url.toLowerCase();
+
+        // Image formats
+        String[] imageExtensions = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".svg", ".ico"};
+        for (String ext : imageExtensions) {
+            if (lowerUrl.endsWith(ext) || lowerUrl.contains(ext + "?")) {
+                return true;
+            }
+        }
+
+        // Video formats
+        String[] videoExtensions = {".mp4", ".webm", ".ogg", ".mov", ".avi", ".mkv", ".flv", ".m4v", ".3gp"};
+        for (String ext : videoExtensions) {
+            if (lowerUrl.endsWith(ext) || lowerUrl.contains(ext + "?")) {
+                return true;
+            }
+        }
+
+        // Audio formats
+        String[] audioExtensions = {".mp3", ".wav", ".ogg", ".m4a", ".aac", ".flac", ".wma"};
+        for (String ext : audioExtensions) {
+            if (lowerUrl.endsWith(ext) || lowerUrl.contains(ext + "?")) {
+                return true;
+            }
+        }
+
+        // Common media hosting domains and patterns
+        String[] mediaPatterns = {
+            "youtube.com/embed", "player.vimeo.com", "dailymotion.com/embed",
+            "videocdn", "videoplayer", "/video/", "/media/", "streamable.com"
+        };
+        for (String pattern : mediaPatterns) {
+            if (lowerUrl.contains(pattern)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private boolean isAdUrl(String url) {
