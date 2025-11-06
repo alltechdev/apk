@@ -217,7 +217,7 @@ body {
   height: 60px;
   padding: 0 var(--space-5);
   background: var(--bg-input);
-  border: 2px solid var(--border-dark);
+  border: 2px solid var(--border-light);
   border-radius: var(--radius-lg);
   color: var(--text-primary);
   font-size: 1rem;
@@ -227,7 +227,7 @@ body {
 }
 
 .form-control:hover {
-  border-color: var(--border-light);
+  border-color: var(--accent-blue);
   background: var(--bg-elevated);
 }
 
@@ -258,7 +258,7 @@ select.form-select {
   height: 60px;
   padding: 0 var(--space-5);
   background: var(--bg-input);
-  border: 2px solid var(--border-dark);
+  border: 2px solid var(--border-light);
   border-radius: var(--radius-lg);
   color: var(--text-primary);
   font-size: 1rem;
@@ -275,7 +275,7 @@ select.form-select {
 
 .form-select:hover,
 select.form-select:hover {
-  border-color: var(--border-light);
+  border-color: var(--accent-blue);
   background-color: var(--bg-elevated);
 }
 
@@ -402,9 +402,31 @@ select.form-select option {
 
 /* File Input */
 .form-control[type="file"] {
-  padding: var(--space-4);
-  height: auto;
+  padding: var(--space-4) var(--space-5);
+  height: 60px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.form-control[type="file"]::file-selector-button {
+  background: var(--primary-gradient);
+  border: none;
+  border-radius: var(--radius-md);
+  color: white;
+  padding: var(--space-2) var(--space-5);
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  margin-right: var(--space-4);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.form-control[type="file"]::file-selector-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 20px rgba(14, 165, 233, 0.4);
 }
 
 /* ============================================
@@ -521,7 +543,7 @@ select.form-select option {
   padding: var(--space-6);
   background: rgba(30, 30, 50, 0.5);
   backdrop-filter: blur(10px);
-  border: 1px solid var(--border-dark);
+  border: 1px solid var(--border-light);
   border-radius: var(--radius-xl);
   animation: expandDown 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -541,14 +563,14 @@ select.form-select option {
 
 .card {
   background: var(--bg-elevated) !important;
-  border: 1px solid var(--border-dark) !important;
+  border: 1px solid var(--border-light) !important;
   border-radius: var(--radius-xl) !important;
   box-shadow: none !important;
   transition: all 0.3s;
 }
 
 .card:hover {
-  border-color: var(--border-light) !important;
+  border-color: var(--accent-blue) !important;
   box-shadow: 0 4px 20px rgba(14, 165, 233, 0.1) !important;
 }
 
@@ -591,7 +613,7 @@ select.form-select option {
 /* Build Cards */
 #buildHistoryList .card {
   background: var(--bg-card) !important;
-  border: 1px solid var(--border-dark) !important;
+  border: 1px solid var(--border-light) !important;
   border-radius: var(--radius-xl) !important;
   overflow: hidden;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -711,7 +733,7 @@ select.form-select option {
 #pageInfo {
   padding: var(--space-4) var(--space-6);
   background: var(--bg-card);
-  border: 1px solid var(--border-dark);
+  border: 1px solid var(--border-light);
   border-radius: var(--radius-xl);
   font-size: 1rem;
   font-weight: 600;
@@ -725,7 +747,7 @@ select.form-select option {
   padding: var(--space-16) var(--space-8);
   text-align: center;
   background: var(--bg-card);
-  border: 2px dashed var(--border-dark);
+  border: 2px dashed var(--border-light);
   border-radius: var(--radius-xl);
 }
 
