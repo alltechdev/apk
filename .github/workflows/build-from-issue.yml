@@ -82,10 +82,16 @@ jobs:
         run: |
           PROJECT_DIR="build/${{ steps.parse.outputs.buildId }}/project"
 
-          # Generate unique package name from domain
+          # Generate unique package name from domain using reverse domain notation
           DOMAIN="${{ steps.parse.outputs.domain }}"
-          PACKAGE_NAME=$(echo "com.${DOMAIN}" | sed 's/\./_/g; s/[^a-zA-Z0-9_.]//g; s/__*/_/g' | tr '[:upper:]' '[:lower:]')
 
+          # Remove www. prefix if present
+          DOMAIN=$(echo "$DOMAIN" | sed 's/^www\.//')
+
+          # Split domain by dots and reverse (e.g., youtube.com -> com.youtube)
+          PACKAGE_NAME=$(echo "$DOMAIN" | awk -F. '{for(i=NF;i>0;i--) printf "%s%s", $i, (i>1?".":"")}' | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9.]//g')
+
+          echo "Domain: $DOMAIN"
           echo "Generated package name: $PACKAGE_NAME"
 
           # Update package name in build.gradle
