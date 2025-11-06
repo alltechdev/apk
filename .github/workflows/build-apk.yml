@@ -1,0 +1,170 @@
+name: Build APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      domain:
+        description: 'Website domain'
+        required: true
+        type: string
+      url:
+        description: 'Full URL'
+        required: true
+        type: string
+      appName:
+        description: 'App name'
+        required: true
+        type: string
+      blockMedia:
+        description: 'Block media'
+        required: false
+        type: boolean
+        default: false
+      viewMode:
+        description: 'View mode'
+        required: false
+        type: choice
+        options:
+          - AUTO
+          - LANDSCAPE
+          - PORTRAIT
+        default: AUTO
+      startUpUrl:
+        description: 'Startup URL'
+        required: false
+        type: string
+      adsBlocker:
+        description: 'Enable ad blocker'
+        required: false
+        type: boolean
+        default: false
+      noSslMode:
+        description: 'Ignore SSL errors'
+        required: false
+        type: boolean
+        default: false
+      additionalDomains:
+        description: 'Additional domains (comma-separated)'
+        required: false
+        type: string
+      buildId:
+        description: 'Build ID for tracking'
+        required: true
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Clone Android template
+        run: |
+          if [ ! -d "AndroidRestrictedWebView" ]; then
+            git clone https://github.com/lo-mityaesh/AndroidRestrictedWebView.git
+          fi
+
+      - name: Create build directory
+        run: |
+          mkdir -p build/${{ inputs.buildId }}
+          cp -r AndroidRestrictedWebView build/${{ inputs.buildId }}/project
+
+      - name: Update app configuration
+        run: |
+          PROJECT_DIR="build/${{ inputs.buildId }}/project"
+
+          # Update app name in strings.xml
+          sed -i "s|<string name=\"app_name\">.*</string>|<string name=\"app_name\">${{ inputs.appName }}</string>|" \
+            $PROJECT_DIR/app/src/main/res/values/strings.xml
+
+          # Create config.json
+          cat > $PROJECT_DIR/app/src/main/assets/config.json << EOF
+          {
+            "domain": "${{ inputs.domain }}",
+            "startUrl": "${{ inputs.startUpUrl || inputs.url }}",
+            "allowedDomains": ["${{ inputs.domain }}"$(echo "${{ inputs.additionalDomains }}" | sed 's/,/, "/g' | sed 's/^/, "/' | sed 's/$/"/')],
+            "blockMedia": ${{ inputs.blockMedia }},
+            "adBlocker": ${{ inputs.adsBlocker }},
+            "ignoreSSLErrors": ${{ inputs.noSslMode }},
+            "orientation": "${{ inputs.viewMode }}"
+          }
+          EOF
+
+          cat $PROJECT_DIR/app/src/main/assets/config.json
+
+      - name: Download and process icon
+        if: github.event.inputs.iconUrl != ''
+        run: |
+          PROJECT_DIR="build/${{ inputs.buildId }}/project"
+          # Icon processing would go here if icon URL is provided
+          echo "Icon processing skipped - implement if needed"
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x build/${{ inputs.buildId }}/project/gradlew
+
+      - name: Build APK
+        run: |
+          cd build/${{ inputs.buildId }}/project
+          ./gradlew assembleRelease --stacktrace
+
+      - name: Sign APK (debug key)
+        run: |
+          # Note: For production, use proper signing keys stored as secrets
+          echo "Using debug signing for now"
+
+      - name: Rename APK
+        run: |
+          PROJECT_DIR="build/${{ inputs.buildId }}/project"
+          APK_PATH="$PROJECT_DIR/app/build/outputs/apk/release/app-release.apk"
+          OUTPUT_NAME="${{ inputs.appName }}-${{ inputs.buildId }}.apk"
+
+          if [ -f "$APK_PATH" ]; then
+            cp "$APK_PATH" "$OUTPUT_NAME"
+            echo "APK built successfully: $OUTPUT_NAME"
+            ls -lh "$OUTPUT_NAME"
+          else
+            echo "APK not found at expected location"
+            exit 1
+          fi
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.appName }}-${{ inputs.buildId }}
+          path: ${{ inputs.appName }}-${{ inputs.buildId }}.apk
+          retention-days: 7
+
+      - name: Create release (optional)
+        if: success()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ inputs.buildId }}" \
+            "${{ inputs.appName }}-${{ inputs.buildId }}.apk" \
+            --title "APK: ${{ inputs.appName }}" \
+            --notes "Built for domain: ${{ inputs.domain }}" \
+            || echo "Release creation failed or already exists"
+
+      - name: Notify build complete
+        if: success()
+        run: |
+          echo "✅ APK built successfully!"
+          echo "Download URL: https://github.com/${{ github.repository }}/releases/download/${{ inputs.buildId }}/${{ inputs.appName }}-${{ inputs.buildId }}.apk"
+
+      - name: Notify build failure
+        if: failure()
+        run: |
+          echo "❌ APK build failed"
+          exit 1
